@@ -20,7 +20,7 @@ const database: DatabaseConfig = {
 };
 
 export const config: Config = {
-  rpcUrl: getEnvVar('SEI_RPC_HTTP', true, 'https://evm-rpc-testnet.sei-apis.com'),
+  rpcUrl: getEnvVar('SEI_RPC_HTTP', true, 'https://rpc-evm-atlantic-2.seitrace.com'),
   chainId: parseInt(getEnvVar('SEI_CHAIN_ID', false, '1328')),
   factoryAddress: getEnvVar('FACTORY_ADDRESS'),
   usdcAddress: getEnvVar('USDC_ADDRESS', true, '0x4fCF1784B31630811181f670Aea7A7bEF803eaED'),

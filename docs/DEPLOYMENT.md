@@ -24,7 +24,7 @@ cp .env.example .env
 
 # Deploy to Sei testnet
 forge script script/Deploy.s.sol \
-  --rpc-url https://evm-rpc-testnet.sei-apis.com \
+  --rpc-url https://rpc-evm-atlantic-2.seitrace.com \
   --private-key $PRIVATE_KEY_DEPLOYER \
   --broadcast \
   --verify
@@ -44,7 +44,7 @@ forge script script/Deploy.s.sol \
 3. **Set Environment Variables**:
    ```
    NEXT_PUBLIC_CHAIN_ID=1328
-   NEXT_PUBLIC_RPC_URL=https://evm-rpc-testnet.sei-apis.com
+   NEXT_PUBLIC_RPC_URL=https://rpc-evm-atlantic-2.seitrace.com
    NEXT_PUBLIC_FACTORY_ADDRESS=your_deployed_factory_address
    NEXT_PUBLIC_USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
    ```
@@ -65,7 +65,7 @@ forge script script/Deploy.s.sol \
 
 3. **Set Environment Variables**:
    ```
-   SEI_RPC_HTTP=https://evm-rpc-testnet.sei-apis.com
+   SEI_RPC_HTTP=https://rpc-evm-atlantic-2.seitrace.com
    SEI_CHAIN_ID=1328
    FACTORY_ADDRESS=your_deployed_factory_address
    USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
@@ -101,7 +101,7 @@ services:
   instance_size_slug: basic-xxs
   envs:
   - key: SEI_RPC_HTTP
-    value: https://evm-rpc-testnet.sei-apis.com
+    value: https://rpc-evm-atlantic-2.seitrace.com
   - key: FACTORY_ADDRESS
     value: your_deployed_factory_address
 ```
@@ -113,7 +113,7 @@ services:
 #### Smart Contracts
 ```bash
 # Required
-SEI_RPC_HTTP=https://evm-rpc-testnet.sei-apis.com
+SEI_RPC_HTTP=https://rpc-evm-atlantic-2.seitrace.com
 SEI_CHAIN_ID=1328
 PRIVATE_KEY_DEPLOYER=your_deployer_private_key
 
@@ -125,7 +125,7 @@ SEI_MAINNET_CHAIN_ID=1329
 #### MCP Server
 ```bash
 # Required
-SEI_RPC_HTTP=https://evm-rpc-testnet.sei-apis.com
+SEI_RPC_HTTP=https://rpc-evm-atlantic-2.seitrace.com
 SEI_CHAIN_ID=1328
 FACTORY_ADDRESS=your_deployed_factory_address
 USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
@@ -148,7 +148,7 @@ GOAT_API_KEY=your_crossmint_api_key
 ```bash
 # Required
 NEXT_PUBLIC_CHAIN_ID=1328
-NEXT_PUBLIC_RPC_URL=https://evm-rpc-testnet.sei-apis.com
+NEXT_PUBLIC_RPC_URL=https://rpc-evm-atlantic-2.seitrace.com
 NEXT_PUBLIC_FACTORY_ADDRESS=your_deployed_factory_address
 NEXT_PUBLIC_USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
 
@@ -362,7 +362,7 @@ cat .env.local  # Check if variables are set correctly
 npm run indexer  # Test database connectivity
 
 # Blockchain RPC issues
-curl -X POST https://evm-rpc-testnet.sei-apis.com \
+curl -X POST https://rpc-evm-atlantic-2.seitrace.com \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
 ```

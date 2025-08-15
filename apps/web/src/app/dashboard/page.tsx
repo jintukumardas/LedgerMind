@@ -1,65 +1,114 @@
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Dashboard - LedgerMind',
-  description: 'Manage your AI agent payment intents',
-};
+import { useAccount } from 'wagmi';
+import { WalletConnect } from '@/components/wallet-connect';
+import { CreateIntentForm } from '@/components/create-intent-form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Dashboard() {
+  const { isConnected } = useAccount();
+
   return (
     <div className="container mx-auto px-6 py-12">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Payment Intents Dashboard</h1>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Payment Intents Dashboard</h1>
+          <WalletConnect />
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="p-6 rounded-lg border bg-card">
-            <h3 className="text-lg font-semibold mb-2">Active Intents</h3>
-            <p className="text-3xl font-bold text-primary">0</p>
-            <p className="text-sm text-muted-foreground">Currently active</p>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Active Intents</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Currently active</p>
+            </CardContent>
+          </Card>
           
-          <div className="p-6 rounded-lg border bg-card">
-            <h3 className="text-lg font-semibold mb-2">Total Spent</h3>
-            <p className="text-3xl font-bold text-primary">$0.00</p>
-            <p className="text-sm text-muted-foreground">USDC spent</p>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Total Spent</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">$0.00</p>
+              <p className="text-sm text-muted-foreground">USDC spent</p>
+            </CardContent>
+          </Card>
           
-          <div className="p-6 rounded-lg border bg-card">
-            <h3 className="text-lg font-semibold mb-2">Transactions</h3>
-            <p className="text-3xl font-bold text-primary">0</p>
-            <p className="text-sm text-muted-foreground">Total payments</p>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Total payments</p>
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="p-8 rounded-lg border bg-card text-center">
-          <h2 className="text-xl font-semibold mb-4">Welcome to LedgerMind</h2>
-          <p className="text-muted-foreground mb-6">
-            Connect your wallet to start creating secure payment intents for your AI agents.
-          </p>
-          
-          <div className="space-y-4">
-            <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25">
-              <h3 className="font-medium mb-2">🔗 Connect Wallet</h3>
-              <p className="text-sm text-muted-foreground">
-                Connect your Sei wallet to begin managing payment intents
-              </p>
-            </div>
+        {isConnected ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <CreateIntentForm />
             
-            <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25">
-              <h3 className="font-medium mb-2">💰 Create Intent</h3>
-              <p className="text-sm text-muted-foreground">
-                Set up spending limits and constraints for your AI agents
-              </p>
-            </div>
-            
-            <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25">
-              <h3 className="font-medium mb-2">🤖 Deploy Agent</h3>
-              <p className="text-sm text-muted-foreground">
-                Configure your AI agent to use the MCP payment tools
-              </p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Payment Intents</CardTitle>
+                <CardDescription>
+                  Manage and monitor your AI agent payment intents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    No payment intents found
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Create your first payment intent to get started
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Welcome to LedgerMind</CardTitle>
+              <CardDescription>
+                Connect your wallet to start creating secure payment intents for your AI agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <WalletConnect />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25 text-center">
+                  <h3 className="font-medium mb-2">🔗 Connect Wallet</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Connect your Sei wallet to begin managing payment intents
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25 text-center">
+                  <h3 className="font-medium mb-2">💰 Create Intent</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Set up spending limits and constraints for your AI agents
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded border-2 border-dashed border-muted-foreground/25 text-center">
+                  <h3 className="font-medium mb-2">🤖 Deploy Agent</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Configure your AI agent to use the MCP payment tools
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

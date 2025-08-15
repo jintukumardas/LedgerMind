@@ -155,3 +155,4 @@ test-intent.env
 .local/
 req.txt
 idea.txrt
+DEPLOYMENT_GUIDE.md
