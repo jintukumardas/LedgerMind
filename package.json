@@ -1,0 +1,53 @@
+{
+  "name": "ledgermind",
+  "version": "1.0.0",
+  "description": "AI Agent Payment Intents on Sei Blockchain",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:contracts && npm run build:mcp && npm run build:web",
+    "build:contracts": "forge build",
+    "build:mcp": "cd packages/mcp && npm run build",
+    "build:web": "cd apps/web && npm run build",
+    "dev": "concurrently \"npm run dev:mcp\" \"npm run dev:web\"",
+    "dev:mcp": "cd packages/mcp && npm run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "test": "npm run test:contracts && npm run test:mcp && npm run test:web",
+    "test:contracts": "forge test",
+    "test:mcp": "cd packages/mcp && npm test",
+    "test:web": "cd apps/web && npm test",
+    "lint": "npm run lint:mcp && npm run lint:web",
+    "lint:mcp": "cd packages/mcp && npm run lint",
+    "lint:web": "cd apps/web && npm run lint",
+    "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist apps/*/.next out cache",
+    "deploy:contracts": "forge script script/Deploy.s.sol --rpc-url $SEI_RPC_HTTP --private-key $PRIVATE_KEY_DEPLOYER --broadcast --verify",
+    "deploy:vercel": "cd apps/web && vercel --prod",
+    "indexer": "cd packages/mcp && npm run indexer",
+    "postinstall": "cd packages/mcp && npm install && cd ../../apps/web && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "ai-agents",
+    "blockchain",
+    "payment-intents",
+    "sei",
+    "mcp",
+    "defi",
+    "smart-contracts"
+  ],
+  "author": "LedgerMind Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/ledgermind",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/ledgermind.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/ledgermind/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
