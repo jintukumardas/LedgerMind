@@ -294,9 +294,7 @@ Add to your Claude MCP settings:
 - **Monitor regularly**: Check the dashboard for unexpected activity
 - **Revoke when needed**: Stop agent spending immediately if needed
 
-## 🏆 **Hackathon Highlights**
-
-### Built for Sei AI Accelathon
+## 🏆 **Highlights**
 
 - **Native Sei Integration**: Fast 400ms finality for instant agent payments
 - **USDC Support**: Native USDC integration with Circle's CCTP v2
