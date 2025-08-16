@@ -49,7 +49,7 @@ cd ../..
 2. **Configure your environment**:
    ```bash
    # Required: Blockchain Configuration
-   SEI_RPC_HTTP=https://rpc-evm-atlantic-2.seitrace.com
+   SEI_RPC_HTTP=https://evm-rpc-testnet.sei-apis.com
    SEI_CHAIN_ID=1328
    PRIVATE_KEY_DEPLOYER=your_deployer_private_key
    PRIVATE_KEY_PAYER=your_payer_private_key  
@@ -150,7 +150,7 @@ If you encounter dependency resolution errors:
 4. Configure environment variables:
    ```
    NEXT_PUBLIC_CHAIN_ID=1328
-   NEXT_PUBLIC_RPC_URL=https://rpc-evm-atlantic-2.seitrace.com
+   NEXT_PUBLIC_RPC_URL=https://evm-rpc-testnet.sei-apis.com
    NEXT_PUBLIC_FACTORY_ADDRESS=your_deployed_factory_address
    NEXT_PUBLIC_USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
    ```

@@ -80,7 +80,7 @@ Edit `.env` with your configuration:
 
 ```bash
 # Required: Blockchain Configuration
-SEI_RPC_HTTP=https://rpc-evm-atlantic-2.seitrace.com
+SEI_RPC_HTTP=https://evm-rpc-testnet.sei-apis.com
 PRIVATE_KEY_DEPLOYER=your_deployer_private_key
 PRIVATE_KEY_PAYER=your_payer_private_key  
 PRIVATE_KEY_AGENT=your_agent_private_key
@@ -215,7 +215,7 @@ cd apps/web && npm test
 3. **Configure Environment Variables**:
    ```bash
    NEXT_PUBLIC_CHAIN_ID=1328
-   NEXT_PUBLIC_RPC_URL=https://rpc-evm-atlantic-2.seitrace.com
+   NEXT_PUBLIC_RPC_URL=https://evm-rpc-testnet.sei-apis.com
    NEXT_PUBLIC_FACTORY_ADDRESS=your_deployed_factory_address
    NEXT_PUBLIC_USDC_ADDRESS=0x4fCF1784B31630811181f670Aea7A7bEF803eaED
    ```
@@ -246,7 +246,7 @@ Add Sei testnet to your wallet:
 {
   "chainId": "0x530",
   "chainName": "Sei Testnet",
-  "rpcUrls": ["https://rpc-evm-atlantic-2.seitrace.com"],
+  "rpcUrls": ["https://evm-rpc-testnet.sei-apis.com"],
   "nativeCurrency": {
     "name": "SEI",
     "symbol": "SEI", 
@@ -267,7 +267,7 @@ Add to your Claude MCP settings:
       "command": "node",
       "args": ["/path/to/ledgermind/packages/mcp/dist/index.js"],
       "env": {
-        "SEI_RPC_HTTP": "https://rpc-evm-atlantic-2.seitrace.com",
+        "SEI_RPC_HTTP": "https://evm-rpc-testnet.sei-apis.com",
         "FACTORY_ADDRESS": "your_deployed_factory_address",
         "PRIVATE_KEY_AGENT": "your_agent_private_key"
       }

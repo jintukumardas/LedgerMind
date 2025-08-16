@@ -10,7 +10,7 @@ via_ir = true
 solc_version = "0.8.26"
 
 [rpc_endpoints]
-sei_testnet = "https://rpc-evm-atlantic-2.seitrace.com"
+sei_testnet = "https://evm-rpc-testnet.sei-apis.com"
 sei_mainnet = "https://evm-rpc.sei-apis.com"
 
 [etherscan]

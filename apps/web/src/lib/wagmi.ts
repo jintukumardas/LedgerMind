@@ -13,10 +13,10 @@ const seiTestnet = {
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc-evm-atlantic-2.seitrace.com'],
+      http: ['https://evm-rpc-testnet.sei-apis.com'],
     },
     public: {
-      http: ['https://rpc-evm-atlantic-2.seitrace.com'],
+      http: ['https://evm-rpc-testnet.sei-apis.com'],
     },
   },
   blockExplorers: {
