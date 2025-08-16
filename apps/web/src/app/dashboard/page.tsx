@@ -3,10 +3,24 @@
 import { useAccount } from 'wagmi';
 import { WalletConnect } from '@/components/wallet-connect';
 import { CreateIntentForm } from '@/components/create-intent-form';
+import { PaymentIntentsList } from '@/components/payment-intents-list';
+import { AgentDemo } from '@/components/agent-demo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePaymentIntents } from '@/hooks/use-payment-intents';
+import { formatTokenAmount } from '@/lib/utils';
 
 export default function Dashboard() {
   const { isConnected } = useAccount();
+  const { intents, refetch } = usePaymentIntents();
+  
+  // Calculate stats from real data
+  const activeIntents = intents.filter(intent => {
+    const isExpired = intent.end < BigInt(Math.floor(Date.now() / 1000));
+    return intent.state === 0 && !isExpired; // 0 = Active state
+  }).length;
+  
+  const totalSpent = intents.reduce((sum, intent) => sum + intent.spent, BigInt(0));
+  const totalTransactions = intents.length; // This could be more accurate with transaction count
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -22,7 +36,7 @@ export default function Dashboard() {
               <CardTitle className="text-lg">Active Intents</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">0</p>
+              <p className="text-3xl font-bold text-primary">{activeIntents}</p>
               <p className="text-sm text-muted-foreground">Currently active</p>
             </CardContent>
           </Card>
@@ -32,7 +46,7 @@ export default function Dashboard() {
               <CardTitle className="text-lg">Total Spent</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">$0.00</p>
+              <p className="text-3xl font-bold text-primary">${formatTokenAmount(totalSpent)}</p>
               <p className="text-sm text-muted-foreground">USDC spent</p>
             </CardContent>
           </Card>
@@ -42,34 +56,23 @@ export default function Dashboard() {
               <CardTitle className="text-lg">Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">0</p>
-              <p className="text-sm text-muted-foreground">Total payments</p>
+              <p className="text-3xl font-bold text-primary">{totalTransactions}</p>
+              <p className="text-sm text-muted-foreground">Payment intents created</p>
             </CardContent>
           </Card>
         </div>
         
         {isConnected ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <CreateIntentForm />
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <CreateIntentForm onIntentCreated={refetch} />
+              <PaymentIntentsList />
+            </div>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Payment Intents</CardTitle>
-                <CardDescription>
-                  Manage and monitor your AI agent payment intents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    No payment intents found
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Create your first payment intent to get started
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* AI Agent Demo Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+              <AgentDemo />
+            </div>
           </div>
         ) : (
           <Card>

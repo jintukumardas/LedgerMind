@@ -92,7 +92,7 @@ export default function Docs() {
             </Link>
             
             <Link 
-              href="https://github.com/your-org/ledgermind" 
+              href="https://github.com/jintukumardas/ledgermind" 
               className="p-4 rounded border bg-card hover:shadow-md transition-shadow"
               target="_blank"
             >

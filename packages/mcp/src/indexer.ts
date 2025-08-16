@@ -3,6 +3,13 @@ import { blockchainClient, FACTORY_ABI, INTENT_ABI } from './blockchain/client.j
 import { dbClient } from './database/client.js';
 import { config } from './config.js';
 
+// Simple logger for indexer
+const logger = {
+  info: (msg: string) => console.log(`[INFO] ${msg}`),
+  warn: (msg: string) => console.warn(`[WARN] ${msg}`),
+  error: (msg: string) => console.error(`[ERROR] ${msg}`)
+};
+
 export class EventIndexer {
   private isRunning = false;
   private intervalId?: NodeJS.Timeout;
@@ -104,6 +111,10 @@ export class EventIndexer {
       for (const log of logs) {
         try {
           const event = factory.interface.parseLog(log);
+          if (!event) {
+            logger.warn('Failed to parse log event');
+            continue;
+          }
           const { payer, intent, agent, salt } = event.args;
 
           // Get intent details
@@ -185,6 +196,10 @@ export class EventIndexer {
       for (const log of executedLogs) {
         try {
           const event = intentContract.interface.parseLog(log);
+          if (!event) {
+            logger.warn('Failed to parse executed event log');
+            continue;
+          }
           const { agent, merchant, token, amount, receiptHash, receiptURI } = event.args;
           
           const block = await blockchainClient.getBlock(log.blockNumber);
@@ -222,6 +237,10 @@ export class EventIndexer {
       for (const log of revokedLogs) {
         try {
           const event = intentContract.interface.parseLog(log);
+          if (!event) {
+            logger.warn('Failed to parse revoked event log');
+            continue;
+          }
           const { by, reason } = event.args;
           
           const block = await blockchainClient.getBlock(log.blockNumber);
@@ -249,6 +268,10 @@ export class EventIndexer {
       for (const log of toppedUpLogs) {
         try {
           const event = intentContract.interface.parseLog(log);
+          if (!event) {
+            logger.warn('Failed to parse topped up event log');
+            continue;
+          }
           const { 0: amount } = event.args; // ToppedUp(uint256 amount)
           
           const block = await blockchainClient.getBlock(log.blockNumber);
@@ -275,6 +298,10 @@ export class EventIndexer {
       for (const log of withdrawnLogs) {
         try {
           const event = intentContract.interface.parseLog(log);
+          if (!event) {
+            logger.warn('Failed to parse withdrawn event log');
+            continue;
+          }
           const { to, amount } = event.args;
           
           const block = await blockchainClient.getBlock(log.blockNumber);

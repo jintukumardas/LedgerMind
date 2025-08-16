@@ -22,7 +22,7 @@ export function formatTokenAmount(
   const quotient = value / divisor;
   const remainder = value % divisor;
   
-  if (remainder === 0n) {
+  if (remainder === BigInt(0)) {
     return quotient.toString();
   }
   
@@ -31,6 +31,23 @@ export function formatTokenAmount(
   const decimalPart = trimmed.slice(0, maxDecimals);
   
   return `${quotient}.${decimalPart}`;
+}
+
+export function formatTokenAmountWithSymbol(
+  amount: string | bigint,
+  tokenAddress: string,
+  usdcAddress: string
+): string {
+  const isUSDC = tokenAddress.toLowerCase() === usdcAddress.toLowerCase();
+  const isNativeSEI = tokenAddress === '0x0000000000000000000000000000000000000000';
+  
+  if (isUSDC) {
+    return `$${formatTokenAmount(amount, 6)} USDC`;
+  } else if (isNativeSEI) {
+    return `${formatTokenAmount(amount, 18, 6)} SEI`;
+  } else {
+    return `${formatTokenAmount(amount, 18)} Token`;
+  }
 }
 
 export function parseTokenAmount(amount: string, decimals: number = 6): bigint {

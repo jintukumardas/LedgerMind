@@ -4,25 +4,30 @@
   "description": "AI Agent Payment Intents on Sei Blockchain",
   "private": true,
   "scripts": {
-    "build": "npm run build:contracts && npm run build:mcp && npm run build:web",
+    "build": "npm run build:contracts && npm run build:mcp && npm run build:agent && npm run build:web",
     "build:contracts": "forge build",
     "build:mcp": "cd packages/mcp && npm run build",
+    "build:agent": "cd packages/agent-goat && npm run build",
     "build:web": "cd apps/web && npm run build",
     "dev": "concurrently \"npm run dev:mcp\" \"npm run dev:web\"",
     "dev:mcp": "cd packages/mcp && npm run dev",
+    "dev:agent": "cd packages/agent-goat && npm run dev",
     "dev:web": "cd apps/web && npm run dev",
-    "test": "npm run test:contracts && npm run test:mcp && npm run test:web",
+    "test": "npm run test:contracts && npm run test:mcp && npm run test:agent && npm run test:web",
     "test:contracts": "forge test",
     "test:mcp": "cd packages/mcp && npm test",
+    "test:agent": "cd packages/agent-goat && npm test",
     "test:web": "cd apps/web && npm test",
-    "lint": "npm run lint:mcp && npm run lint:web",
+    "lint": "npm run lint:mcp && npm run lint:agent && npm run lint:web",
     "lint:mcp": "cd packages/mcp && npm run lint",
+    "lint:agent": "cd packages/agent-goat && npm run lint",
     "lint:web": "cd apps/web && npm run lint",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist apps/*/.next out cache",
     "deploy:contracts": "forge script script/Deploy.s.sol --rpc-url $SEI_RPC_HTTP --private-key $PRIVATE_KEY_DEPLOYER --broadcast --verify",
     "deploy:vercel": "cd apps/web && vercel --prod",
     "indexer": "cd packages/mcp && npm run indexer",
-    "postinstall": "cd packages/mcp && npm install && cd ../../apps/web && npm install"
+    "agent:demo": "cd packages/agent-goat && npm run dev",
+    "postinstall": "cd packages/mcp && npm install && cd ../agent-goat && npm install && cd ../../apps/web && npm install"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
@@ -38,16 +43,21 @@
   ],
   "author": "LedgerMind Team",
   "license": "MIT",
-  "homepage": "https://github.com/your-org/ledgermind",
+  "homepage": "https://github.com/jintukumardas/ledgermind",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/ledgermind.git"
+    "url": "https://github.com/jintukumardas/ledgermind.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/ledgermind/issues"
+    "url": "https://github.com/jintukumardas/ledgermind/issues"
   },
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "@goat-sdk/core": "^0.5.0",
+    "@goat-sdk/plugin-erc20": "^0.2.14",
+    "@goat-sdk/wallet-evm": "^0.3.0"
   }
 }

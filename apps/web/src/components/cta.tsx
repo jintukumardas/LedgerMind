@@ -24,7 +24,7 @@ export function CTA() {
           </Button>
           
           <Button variant="outline" size="lg" asChild>
-            <Link href="https://github.com/your-org/ledgermind" target="_blank">
+            <Link href="https://github.com/jintukumardas/ledgermind" target="_blank">
               <Github className="mr-2 h-4 w-4" />
               View on GitHub
             </Link>

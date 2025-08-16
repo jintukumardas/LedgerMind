@@ -172,7 +172,7 @@ If you encounter dependency resolution errors:
 
 ## 🆘 Getting Help
 
-- **GitHub Issues**: [Report bugs](https://github.com/your-org/ledgermind/issues)
+- **GitHub Issues**: [Report bugs](https://github.com/jintukumardas/ledgermind/issues)
 - **Discord**: [Join community](https://discord.gg/ledgermind)
 - **Email**: team@ledgermind.ai
 

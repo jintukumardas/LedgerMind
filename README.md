@@ -57,7 +57,7 @@ AI agents need to make payments autonomously, but current solutions are either:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/ledgermind.git
+git clone https://github.com/jintukumardas/ledgermind.git
 cd ledgermind
 ```
 

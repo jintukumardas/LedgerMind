@@ -5,7 +5,7 @@ This guide covers deploying LedgerMind to production environments.
 ## 🚀 Quick Deploy
 
 ### 1. Fork Repository
-Fork the [LedgerMind repository](https://github.com/your-org/ledgermind) to your GitHub account.
+Fork the [LedgerMind repository](https://github.com/jintukumardas/ledgermind) to your GitHub account.
 
 ### 2. Deploy Smart Contracts
 
@@ -369,7 +369,7 @@ curl -X POST https://evm-rpc-testnet.sei-apis.com \
 
 ### Getting Help
 
-- **GitHub Issues**: [Report bugs and issues](https://github.com/your-org/ledgermind/issues)
+- **GitHub Issues**: [Report bugs and issues](https://github.com/jintukumardas/ledgermind/issues)
 - **Discord**: [Join our community](https://discord.gg/ledgermind)
 - **Email**: team@ledgermind.ai
 

@@ -88,7 +88,11 @@ export class BlockchainClient {
   }
 
   async getBlock(blockNumber?: number): Promise<ethers.Block> {
-    return await this.provider.getBlock(blockNumber || 'latest');
+    const block = await this.provider.getBlock(blockNumber || 'latest');
+    if (!block) {
+      throw new Error(`Block not found: ${blockNumber || 'latest'}`);
+    }
+    return block;
   }
 
   async waitForTransaction(txHash: string): Promise<ethers.TransactionReceipt | null> {
