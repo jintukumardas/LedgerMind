@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePaymentIntents, PaymentIntent } from '@/hooks/use-payment-intents';
+import { IntentManagement } from '@/components/intent-management';
 import { formatAddress, formatTokenAmount } from '@/lib/utils';
-import { Loader2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Settings, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function IntentCard({ intent }: { intent: PaymentIntent }) {
@@ -19,9 +20,11 @@ function IntentCard({ intent }: { intent: PaymentIntent }) {
             <CardTitle className="text-lg">{formatAddress(intent.address)}</CardTitle>
             <CardDescription>Agent: {formatAddress(intent.agent)}</CardDescription>
           </div>
-          <Badge variant={isActive && !isExpired ? "default" : "secondary"}>
-            {isActive && !isExpired ? "Active" : isExpired ? "Expired" : intent.state === 1 ? "Revoked" : "Inactive"}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge variant={isActive && !isExpired ? "default" : "secondary"}>
+              {isActive && !isExpired ? "Active" : isExpired ? "Expired" : intent.state === 1 ? "Paused" : intent.state === 2 ? "Revoked" : "Inactive"}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -67,6 +70,7 @@ function IntentCard({ intent }: { intent: PaymentIntent }) {
 export function PaymentIntentsList() {
   const { intents, loading, error, refetch } = usePaymentIntents();
   const [currentPage, setCurrentPage] = useState(1);
+  const [managingIntent, setManagingIntent] = useState<string | null>(null);
   const itemsPerPage = 5;
   
   // Calculate pagination
@@ -144,7 +148,22 @@ export function PaymentIntentsList() {
           <>
             <div className="space-y-4">
               {currentIntents.map((intent) => (
-                <IntentCard key={intent.address} intent={intent} />
+                <div key={intent.address} className="relative">
+                  <IntentCard intent={intent} />
+                  <div className="absolute top-4 right-4">
+                    {intent.state !== 2 && !((intent.end < BigInt(Math.floor(Date.now() / 1000)))) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setManagingIntent(intent.address)}
+                        className="gap-1"
+                      >
+                        <Settings className="h-3 w-3" />
+                        Manage
+                      </Button>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
             
@@ -181,6 +200,30 @@ export function PaymentIntentsList() {
           </>
         )}
       </CardContent>
+
+      {/* Intent Management Modal */}
+      {managingIntent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Manage Payment Intent</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setManagingIntent(null)}
+                  className="gap-1"
+                >
+                  ✕ Close
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <IntentManagement intentAddress={managingIntent} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </Card>
   );
 }

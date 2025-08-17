@@ -369,10 +369,10 @@ export function AgentDemo() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <CardTitle>AI Agent Demo</CardTitle>
+          <CardTitle>AI Agent Payments</CardTitle>
         </div>
         <CardDescription>
-          Simulate how your AI agent uses payment intents to make secure transactions
+          Execute real blockchain payments through your AI agent using payment intents
         </CardDescription>
         <div className="text-xs text-muted-foreground">
           Agent Address: {agentWallet.getAddress()}
@@ -381,7 +381,7 @@ export function AgentDemo() {
       <CardContent className="space-y-6">
         {!isConnected ? (
           <div className="text-center py-4 text-muted-foreground">
-            Please connect your wallet to use the AI Agent Demo
+            Please connect your wallet to execute AI agent payments
           </div>
         ) : activeIntents.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
@@ -436,7 +436,7 @@ export function AgentDemo() {
                   disabled={isRunning || isPending || !recipient || !amount || !selectedIntent}
                   className="w-full"
                 >
-                  {isRunning || isPending ? 'AI Agent Executing...' : '🤖 Execute Real AI Payment'}
+                  {isRunning || isPending ? 'AI Agent Executing...' : '🤖 Execute AI Payment'}
                 </Button>
               </div>
             </div>
@@ -545,18 +545,19 @@ export function AgentDemo() {
           </div>
         )}
 
-        {/* Demo Information */}
+        {/* Process Information */}
         <div className="rounded-lg border bg-blue-50 p-4">
-          <h4 className="font-medium text-sm mb-2 text-blue-900">Real AI Agent Execution:</h4>
+          <h4 className="font-medium text-sm mb-2 text-blue-900">AI Agent Payment Process:</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• AI agent analyzes the payment request</li>
             <li>• Checks payment intent limits and merchant restrictions</li>
-            <li>• Executes real USDC payment through smart contract</li>
+            <li>• Executes USDC payment through smart contract</li>
             <li>• Transaction recorded on Sei blockchain with receipt</li>
             <li>• Payment intent spending balance automatically updated</li>
+            <li>• Auto-funding from agent wallet if needed</li>
           </ul>
           <div className="mt-2 text-xs text-blue-700">
-            ⚠️ This executes real transactions on Sei testnet
+            💡 All transactions are real and recorded on-chain
           </div>
         </div>
       </CardContent>

@@ -62,6 +62,8 @@ export class AgentWallet {
         abi: INTENT_ABI,
         functionName: 'execute',
         args: [merchant, amount, receiptHash, receiptURI],
+        account: this.account,
+        chain: seiTestnet,
       });
 
       return hash;
@@ -86,7 +88,7 @@ export class AgentWallet {
   }
 
   async getBalance(): Promise<bigint> {
-    const balance = await this.walletClient.getBalance({
+    const balance = await this.publicClient.getBalance({
       address: this.account.address
     });
     return balance;
@@ -146,7 +148,9 @@ export class AgentWallet {
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'transfer',
-        args: [intentAddress, amount]
+        args: [intentAddress, amount],
+        account: this.account,
+        chain: seiTestnet,
       });
 
       return hash;
