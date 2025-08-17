@@ -1,4 +1,4 @@
-# 🤖 LedgerMind - AI Agent Payment Intents
+# 🤖 LedgerMind - Agent Payment Intents (API)
 
 [![Sei Blockchain](https://img.shields.io/badge/Sei-Network-red?style=for-the-badge)](https://www.sei.io/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-blue?style=for-the-badge)](https://modelcontextprotocol.io/)
