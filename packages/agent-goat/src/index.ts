@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import dotenv from "dotenv";
-// Note: GOAT SDK integration to be implemented based on actual API
-// import { getOnChainTools } from "@goat-sdk/wallet-evm";
-// import { ERC20Plugin } from "@goat-sdk/plugin-erc20";
+import { getOnChainTools } from "@goat-sdk/wallet-evm";
+import { erc20Plugin } from "@goat-sdk/plugin-erc20";
+import { Chain } from "@goat-sdk/core";
 
 dotenv.config();
 
@@ -10,6 +10,26 @@ dotenv.config();
 const FACTORY_ADDRESS = "0xfF0e7F71a0e19E0BF037Bd90Ba30A2Ee409E53a7";
 const USDC_ADDRESS = "0x4fCF1784B31630811181f670Aea7A7bEF803eaED";
 const SEI_RPC_URL = "https://evm-rpc-testnet.sei-apis.com";
+
+// Sei testnet chain configuration
+const seiTestnet: Chain = {
+  type: "evm",
+  id: 1328,
+  name: "Sei EVM Testnet",
+  rpcUrls: {
+    default: {
+      http: [SEI_RPC_URL]
+    }
+  },
+  nativeCurrency: {
+    decimals: 18,
+    name: "SEI",
+    symbol: "SEI"
+  },
+  blockExplorers: {
+    default: { name: "SeiTrace", url: "https://seitrace.com" }
+  }
+};
 
 // Payment Intent Factory ABI (minimal for demonstration)
 const FACTORY_ABI = [
@@ -31,15 +51,39 @@ export class LedgerMindAgent {
   }
 
   async initialize() {
-    // TODO: Initialize GOAT SDK tools when available
-    // this.goatTools = await getOnChainTools({
-    //   wallet: this.wallet,
-    //   plugins: [new ERC20Plugin()],
-    // });
-    
-    console.log(`Agent initialized with address: ${this.wallet.address}`);
-    const network = await this.provider.getNetwork();
-    console.log(`Connected to Sei network: ${network.name} (${network.chainId})`);
+    try {
+      // Initialize GOAT SDK tools
+      this.goatTools = await getOnChainTools({
+        wallet: this.wallet,
+        plugins: [
+          erc20Plugin({
+            tokens: [
+              {
+                decimals: 6,
+                symbol: "USDC",
+                name: "USD Coin",
+                address: USDC_ADDRESS,
+                chain: seiTestnet
+              }
+            ]
+          })
+        ]
+      });
+      
+      console.log(`Agent initialized with GOAT SDK tools`);
+      console.log(`Agent address: ${this.wallet.address}`);
+      const network = await this.provider.getNetwork();
+      console.log(`Connected to Sei network: ${network.name} (${network.chainId})`);
+      
+      // List available tools
+      if (this.goatTools) {
+        const tools = Object.keys(this.goatTools);
+        console.log(`Available GOAT tools: ${tools.join(', ')}`);
+      }
+    } catch (error) {
+      console.warn("Failed to initialize GOAT SDK tools:", error);
+      console.log("Continuing with basic functionality...");
+    }
   }
 
   /**
@@ -106,9 +150,23 @@ export class LedgerMindAgent {
       } else {
         // Direct USDC transfer using GOAT SDK
         console.log(`Paying ${amountUSDC} USDC to ${recipient}`);
-        // Use GOAT SDK for direct ERC20 transfer
-        // This would be implemented with the actual GOAT SDK methods
-        throw new Error("Direct USDC transfers not implemented - use payment intents");
+        
+        if (this.goatTools && this.goatTools.transfer) {
+          try {
+            const result = await this.goatTools.transfer({
+              to: recipient,
+              amount: amountUSDC.toString(),
+              token: "USDC"
+            });
+            console.log(`Direct USDC payment executed: ${result.hash}`);
+            return result.hash;
+          } catch (error) {
+            console.error("GOAT SDK transfer failed:", error);
+            throw new Error("Direct USDC transfers failed - consider using payment intents");
+          }
+        } else {
+          throw new Error("GOAT SDK not available - use payment intents for secure transfers");
+        }
       }
     } catch (error) {
       console.error("Failed to execute USDC payment:", error);

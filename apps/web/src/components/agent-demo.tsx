@@ -12,6 +12,7 @@ import { usePaymentIntents } from '@/hooks/use-payment-intents';
 import { getExplorerUrl, formatTransactionHash } from '@/lib/explorer';
 import { parseUnits } from 'viem';
 import { agentWallet } from '@/lib/agent-wallet';
+import { parseContractError } from '@/lib/error-parser';
 import { Bot, Zap, DollarSign, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 
 // Payment Intent ABI for execute function
@@ -54,6 +55,7 @@ export function AgentDemo() {
   const chainId = useChainId();
   const [hash, setHash] = useState<`0x${string}` | undefined>();
   const [isPending, setIsPending] = useState(false);
+  const [currentPaymentActionId, setCurrentPaymentActionId] = useState<string | null>(null);
   
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
@@ -91,6 +93,9 @@ export function AgentDemo() {
           txHash: hash
         });
         
+        // Clear the current payment action ID
+        setCurrentPaymentActionId(null);
+        
         toast.success("AI Agent Payment Complete", `Transaction: ${formatTransactionHash(hash)}`);
         
         // Show explorer link
@@ -118,12 +123,67 @@ export function AgentDemo() {
 
   const executeRealPayment = async () => {
     if (!recipient || !amount || !selectedIntent) {
-      toast.error("Missing Information", "Please select an intent and provide recipient/amount");
+      toast({
+        title: "Missing Information",
+        description: "Please select an intent and provide recipient/amount",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!isConnected) {
-      toast.error("Wallet Not Connected", "Please connect your wallet first");
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate the selected intent and amount
+    const selectedIntentData = activeIntents.find(i => i.address === selectedIntent);
+    if (!selectedIntentData) {
+      toast({
+        title: "Invalid Intent",
+        description: "Selected payment intent not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const amountWei = parseUnits(amount, 6);
+    
+    // Check per-transaction cap
+    if (amountWei > selectedIntentData.perTransactionCap) {
+      const maxPerTx = Number(selectedIntentData.perTransactionCap) / 1e6;
+      toast({
+        title: "Amount Too High",
+        description: `Payment amount ($${amount}) exceeds per-transaction cap ($${maxPerTx})`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check remaining balance
+    const remaining = selectedIntentData.totalCap - selectedIntentData.spent;
+    if (amountWei > remaining) {
+      const remainingUSDC = Number(remaining) / 1e6;
+      toast({
+        title: "Insufficient Intent Balance",
+        description: `Payment amount ($${amount}) exceeds available balance ($${remainingUSDC.toFixed(2)})`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if intent is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (now >= Number(selectedIntentData.end)) {
+      toast({
+        title: "Intent Expired",
+        description: "This payment intent has expired and cannot be used",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -158,38 +218,141 @@ export function AgentDemo() {
         recipient,
         status: 'pending'
       });
+      
+      // Store the payment action ID for error handling
+      setCurrentPaymentActionId(paymentAction.id);
 
       // Generate receipt data
       const receiptHash = `0x${Math.random().toString(16).slice(2).padStart(64, '0')}` as `0x${string}`;
       const receiptURI = `Payment from AI Agent - ${Date.now()}`;
 
-      // Execute real blockchain transaction using agent wallet
-      setIsPending(true);
-      const txHash = await agentWallet.executePaymentIntent(
-        selectedIntent as `0x${string}`,
-        recipient as `0x${string}`,
-        parseUnits(amount, 6), // USDC has 6 decimals
-        receiptHash,
-        receiptURI
-      );
-      
-      setHash(txHash);
-      setIsPending(false);
+      // Check if agent has USDC and auto-fund the intent if needed
+      try {
+        setIsPending(true);
+        const txHash = await agentWallet.executePaymentIntent(
+          selectedIntent as `0x${string}`,
+          recipient as `0x${string}`,
+          parseUnits(amount, 6), // USDC has 6 decimals
+          receiptHash,
+          receiptURI
+        );
+        
+        setHash(txHash);
+        setIsPending(false);
+        toast.success("Transaction Submitted", "AI agent payment is being processed...");
+      } catch (initialError: any) {
+        setIsPending(false);
+        
+        // Check if this is an insufficient balance error
+        if (initialError.message?.includes('PaymentIntent: insufficient balance')) {
+          // Try to auto-fund the intent with agent's USDC
+          try {
+            toast({
+              title: "Auto-funding Intent",
+              description: "Payment intent needs funding. Attempting to fund with agent's USDC...",
+              variant: "default",
+            });
 
-      toast.success("Transaction Submitted", "AI agent payment is being processed...");
+            // Check agent's USDC balance
+            const agentUSDCBalance = await agentWallet.getUSDCBalance();
+            const requiredAmount = parseUnits(amount, 6);
+            
+            if (agentUSDCBalance >= requiredAmount) {
+              // Fund the intent with the required amount plus a small buffer
+              const fundingAmount = requiredAmount + parseUnits('10', 6); // Add 10 USDC buffer
+              const actualFundingAmount = agentUSDCBalance < fundingAmount ? agentUSDCBalance : fundingAmount;
+              
+              const fundingAction = addAction({
+                type: 'check',
+                description: `Funding intent with ${Number(actualFundingAmount) / 1e6} USDC from agent wallet`,
+                status: 'pending'
+              });
+
+              const fundTxHash = await agentWallet.fundPaymentIntent(
+                selectedIntent as `0x${string}`,
+                actualFundingAmount
+              );
+              
+              updateAction(fundingAction.id, { status: 'success', txHash: fundTxHash });
+              
+              // Wait a moment for the funding transaction to be processed
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              // Now retry the original payment
+              setIsPending(true);
+              const retryPaymentAction = addAction({
+                type: 'payment',
+                description: `Retrying payment after funding: $${amount} USDC`,
+                amount: parseFloat(amount),
+                recipient,
+                status: 'pending'
+              });
+              
+              const txHash = await agentWallet.executePaymentIntent(
+                selectedIntent as `0x${string}`,
+                recipient as `0x${string}`,
+                parseUnits(amount, 6),
+                receiptHash,
+                receiptURI
+              );
+              
+              setHash(txHash);
+              setIsPending(false);
+              toast.success("Payment Successful", "Intent was auto-funded and payment executed!");
+            } else {
+              throw new Error(`Agent wallet has insufficient USDC balance. Has ${Number(agentUSDCBalance) / 1e6} USDC, needs ${amount} USDC`);
+            }
+          } catch (fundingError) {
+            console.error('Auto-funding failed:', fundingError);
+            // Mark the funding action as failed if it exists
+            setActions(prevActions => 
+              prevActions.map(action => 
+                action.status === 'pending' && action.description.includes('Funding intent') 
+                  ? { ...action, status: 'error' } 
+                  : action
+              )
+            );
+            throw initialError; // Fall back to original error
+          }
+        } else {
+          throw initialError; // Re-throw non-funding errors immediately
+        }
+      }
 
     } catch (err) {
       console.error('Payment execution failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      toast.error("Payment Failed", errorMessage);
+      setIsPending(false);
+      setIsRunning(false);
       
-      // Mark last pending action as failed
-      const lastPendingAction = actions.find(a => a.status === 'pending');
-      if (lastPendingAction) {
-        updateAction(lastPendingAction.id, { status: 'error' });
+      // Parse the contract error for user-friendly display
+      const parsedError = parseContractError(err);
+      
+      toast({
+        title: parsedError.title,
+        description: parsedError.description,
+        variant: "destructive",
+      });
+      
+      // Show suggestion in a separate toast if available
+      if (parsedError.suggestion) {
+        setTimeout(() => {
+          toast({
+            title: "💡 Suggestion",
+            description: parsedError.suggestion,
+            variant: "default",
+          });
+        }, 1000);
       }
       
-      setIsRunning(false);
+      // Mark ALL pending actions as failed
+      setActions(prevActions => 
+        prevActions.map(action => 
+          action.status === 'pending' ? { ...action, status: 'error' } : action
+        )
+      );
+      
+      // Clear the current payment action ID
+      setCurrentPaymentActionId(null);
     }
   };
 
@@ -285,12 +448,47 @@ export function AgentDemo() {
                 {(() => {
                   const intent = activeIntents.find(i => i.address === selectedIntent);
                   if (!intent) return null;
+                  
+                  const totalCapUSDC = Number(intent.totalCap) / 1e6;
+                  const perTransactionCapUSDC = Number(intent.perTransactionCap) / 1e6;
+                  const spentUSDC = Number(intent.spent) / 1e6;
+                  const availableUSDC = Number(intent.totalCap - intent.spent) / 1e6;
+                  const endDate = new Date(Number(intent.end) * 1000);
+                  const isExpiring = endDate.getTime() - Date.now() < 24 * 60 * 60 * 1000; // 24 hours
+                  
                   return (
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>Total Cap: ${Number(intent.totalCap) / 1e6} USDC</div>
-                      <div>Per Transaction Cap: ${Number(intent.perTransactionCap) / 1e6} USDC</div>
-                      <div>Already Spent: ${Number(intent.spent) / 1e6} USDC</div>
-                      <div>Available: ${Number(intent.totalCap - intent.spent) / 1e6} USDC</div>
+                    <div className="text-sm space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-muted-foreground">
+                        <div>Total Cap: ${totalCapUSDC} USDC</div>
+                        <div>Per Transaction Cap: ${perTransactionCapUSDC} USDC</div>
+                        <div>Already Spent: ${spentUSDC} USDC</div>
+                        <div className={availableUSDC < 10 ? "text-orange-600 font-medium" : ""}>
+                          Available: ${availableUSDC.toFixed(2)} USDC
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">
+                          Expires: {endDate.toLocaleDateString()} {endDate.toLocaleTimeString()}
+                        </span>
+                        {isExpiring && (
+                          <Badge variant="outline" className="text-orange-600 border-orange-600">
+                            Expiring Soon
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {parseFloat(amount) > perTransactionCapUSDC && (
+                        <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                          ⚠️ Amount exceeds per-transaction cap of ${perTransactionCapUSDC}
+                        </div>
+                      )}
+                      
+                      {parseFloat(amount) > availableUSDC && (
+                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                          ❌ Amount exceeds available balance of ${availableUSDC.toFixed(2)}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { usePaymentIntents, PaymentIntent } from '@/hooks/use-payment-intents';
 import { formatAddress, formatTokenAmount } from '@/lib/utils';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function IntentCard({ intent }: { intent: PaymentIntent }) {
@@ -65,6 +66,21 @@ function IntentCard({ intent }: { intent: PaymentIntent }) {
 
 export function PaymentIntentsList() {
   const { intents, loading, error, refetch } = usePaymentIntents();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(intents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentIntents = intents.slice(startIndex, endIndex);
+  
+  // Reset to first page when intents change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [intents.length, currentPage, totalPages]);
 
   if (loading) {
     return (
@@ -125,11 +141,44 @@ export function PaymentIntentsList() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {intents.map((intent) => (
-              <IntentCard key={intent.address} intent={intent} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {currentIntents.map((intent) => (
+                <IntentCard key={intent.address} intent={intent} />
+              ))}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1}-{Math.min(endIndex, intents.length)} of {intents.length} intents
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

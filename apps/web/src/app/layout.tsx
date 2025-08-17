@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
+import { Header } from '@/components/header';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
@@ -46,6 +47,7 @@ export default function RootLayout({
         'min-h-screen bg-background font-sans antialiased'
       )}>
         <Providers>
+          <Header />
           {children}
         </Providers>
       </body>

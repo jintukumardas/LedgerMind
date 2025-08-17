@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Hero } from '@/components/hero';
 import { Features } from '@/components/features';
 import { HowItWorks } from '@/components/how-it-works';
+import { AgentSetup } from '@/components/agent-setup';
 import { CTA } from '@/components/cta';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function Home() {
       <Hero />
       <Features />
       <HowItWorks />
+      <AgentSetup />
       <CTA />
     </main>
   );
