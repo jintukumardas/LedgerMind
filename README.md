@@ -9,6 +9,18 @@
 
 LedgerMind solves the trust problem in autonomous AI agent commerce by creating secure, limited-scope payment intents with full transparency and user control.
 
+## ✨ **What's New in v2.0**
+
+🎉 **Major Updates** - Complete rewrite with production-ready features:
+
+- 🔥 **Real Blockchain Integration**: Live Sei testnet deployment with actual smart contracts
+- 🤖 **Agent Marketplace**: Register, discover, and chat with AI agents 
+- 💬 **Intelligent Agent Chat**: Context-aware AI responses with real payment execution
+- 📊 **Personal Assistant**: Your AI helper for managing intents and transactions
+- 🧾 **Advanced Transaction History**: Filtering, receipt verification, merchant management
+- 🔐 **Enhanced Security**: Address validation, user-friendly error messages
+- 📱 **Professional UI**: Polished interface with loading states and error handling
+
 ## 🎯 **Problem Statement**
 
 AI agents need to make payments autonomously, but current solutions are either:
@@ -236,90 +248,89 @@ buildCommand = "cd packages/mcp && npm install && npm run build"
 startCommand = "cd packages/mcp && npm start"
 ```
 
-## 🔧 **Configuration**
+## 🎨 **Features Overview**
 
-### Sei Network Setup
+### 🏪 **Agent Marketplace**
+- **Agent Registration**: Complete 4-step wizard for registering AI agents
+- **Agent Discovery**: Search and filter agents by capabilities, price, and rating
+- **Live Chat**: Interactive chat with AI agents supporting real blockchain operations
+- **Agent Analytics**: Track usage, earnings, and performance metrics
 
-Add Sei testnet to your wallet:
+### 🤖 **Intelligent AI Integration**
+- **Context-Aware Responses**: Agents understand blockchain context and user intents
+- **Real Payment Execution**: Agents can execute actual USDC transactions through intents
+- **Multi-Agent Support**: Support for different agent types (Payment, DeFi, Trading, Security)
+- **Smart Error Handling**: User-friendly error messages with actionable guidance
 
-```json
-{
-  "chainId": "0x530",
-  "chainName": "Sei Testnet",
-  "rpcUrls": ["https://evm-rpc-testnet.sei-apis.com"],
-  "nativeCurrency": {
-    "name": "SEI",
-    "symbol": "SEI", 
-    "decimals": 18
-  },
-  "blockExplorerUrls": ["https://seitrace.com"]
-}
+### 📊 **Personal AI Assistant**
+- **Account Management**: AI helper for managing your payment intents and transactions
+- **Quick Actions**: One-click buttons for common operations (check balance, show intents)
+- **Spending Analysis**: AI-powered insights into your transaction patterns
+- **Natural Language**: Ask questions like "How much have I spent this month?"
+
+### 💳 **Advanced Transaction Management**
+- **Real Blockchain Data**: Live transaction history from Sei blockchain
+- **Advanced Filtering**: Filter by type, status, token, and source (payment intent vs direct wallet)
+- **Receipt Verification**: Full on-chain receipt verification with confirmations
+- **Merchant Management**: Save and manage merchant addresses for easy identification
+
+### 🔒 **Intent Management**
+- **Comprehensive Controls**: Pause, resume, revoke, and edit payment intents
+- **Real-time Status**: Live updates on intent status and spending limits
+- **Smart Constraints**: Automatic validation of spending limits and time constraints
+- **Batch Operations**: Manage multiple intents efficiently
+
+### 🛡️ **Enhanced Security**
+- **Address Validation**: Comprehensive address format and checksum validation
+- **User-Friendly Errors**: Clear error messages instead of technical blockchain errors
+- **Input Sanitization**: All inputs validated and sanitized before blockchain interaction
+- **Safe Defaults**: Conservative defaults for new users
+
+### 📱 **Professional UI/UX**
+- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Loading States**: Clear feedback during blockchain operations
+- **Error Recovery**: Graceful error handling with retry options
+- **Dark/Light Themes**: Support for user preferences
+
+### 🔌 **MCP Integration**
+- **Native Claude Support**: Deep integration with Claude Desktop and Claude Code
+- **Tool Documentation**: Clear usage examples and parameter descriptions
+- **Error Context**: Detailed error information for debugging
+- **Security Guidance**: Built-in security best practices and warnings
+
+## 🚀 **Usage Examples**
+
+### Creating a Payment Intent (via Dashboard)
+```typescript
+// Set up a payment intent for $1000 total, $100 per transaction, valid for 30 days
+const intent = await createPaymentIntent({
+  agent: "0x742d35Cc6Af09C8B8B4f0C07A9bCa8Fb2E9e9189",
+  totalCap: parseUSDC("1000"),
+  perTransactionCap: parseUSDC("100"),
+  duration: 30 * 24 * 60 * 60, // 30 days in seconds
+  allowedMerchants: [] // Empty for any merchant
+});
 ```
 
-### MCP Integration with Claude
+### Using MCP with Claude
+```
+User: "Create a payment intent for $500 total, $50 per transaction, valid for 7 days"
 
-Add to your Claude MCP settings:
-
-```json
-{
-  "mcpServers": {
-    "ledgermind": {
-      "command": "node",
-      "args": ["/path/to/ledgermind/packages/mcp/dist/index.js"],
-      "env": {
-        "SEI_RPC_HTTP": "https://evm-rpc-testnet.sei-apis.com",
-        "FACTORY_ADDRESS": "your_deployed_factory_address",
-        "PRIVATE_KEY_AGENT": "your_agent_private_key"
-      }
-    }
-  }
-}
+Claude: I'll create a payment intent with those specifications...
+[Executes create_intent tool]
+✅ Payment intent created at address 0x1234...
 ```
 
-## 🔐 **Security**
+### Agent Marketplace Interaction
+```
+User: [Clicks "Chat" with PaymentBot Pro]
+User: "Pay $25 USDC to 0x742d35Cc6Af09C8B8B4f0C07A9bCa8Fb2E9e9189"
 
-### Smart Contract Security
+Agent: I'll execute that payment through your payment intent...
+[Executes payment via smart contract]
+✅ Payment completed! Transaction: 0xabcd...
+```
 
-- ✅ **Reentrancy Protection**: Using OpenZeppelin's `ReentrancyGuard`
-- ✅ **Access Control**: Strict payer/agent permission checks
-- ✅ **Integer Overflow**: Solidity 0.8.26 built-in protection
-- ✅ **Input Validation**: Comprehensive parameter validation
-- ✅ **Pausability**: Emergency pause functionality
-
-### Best Practices
-
-- **Never share private keys**: Use separate agent wallets with limited scope
-- **Set conservative limits**: Start with small amounts and short time periods
-- **Use merchant allowlists**: Restrict payments to known, trusted addresses
-- **Monitor regularly**: Check the dashboard for unexpected activity
-- **Revoke when needed**: Stop agent spending immediately if needed
-
-## 🏆 **Highlights**
-
-- **Native Sei Integration**: Fast 400ms finality for instant agent payments
-- **USDC Support**: Native USDC integration with Circle's CCTP v2
-- **MCP Protocol**: First payment primitive designed for AI agents
-- **Full Stack**: Smart contracts, indexer, frontend, and developer tools
-
-### Innovation Impact
-
-- **🎯 Addresses Real Problem**: Trust in autonomous agent commerce
-- **🔧 Production Ready**: Comprehensive testing and error handling
-- **🌍 Ecosystem Value**: Standards for the entire AI x crypto space
-- **📈 Scalable**: Factory pattern supports unlimited payment intents
-
-## 📜 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- **Sei Foundation**: For the incredible blockchain infrastructure
-- **Anthropic**: For MCP and Claude integration capabilities  
-- **Crossmint**: For GOAT SDK and wallet infrastructure
-- **OpenZeppelin**: For battle-tested smart contract libraries
-- **Foundry**: For the excellent development and testing framework
-
----
-
-**Built with ❤️ for the AI x Crypto future**
+### Personal Assistant Query
+```
+User: [Clicks "📈 Spending Analysis" quick action]

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useTransactionHistory } from '@/hooks/use-transaction-history';
 import { parseUnits } from 'viem';
 import { getExplorerUrl, formatTransactionHash } from '@/lib/explorer';
 import { ExternalLink } from 'lucide-react';
@@ -48,6 +49,7 @@ interface CreateIntentFormProps {
 export function CreateIntentForm({ onIntentCreated }: CreateIntentFormProps) {
   const { address, isConnected } = useAccount();
   const { toast } = useToast();
+  const { addTransaction } = useTransactionHistory();
   const chainId = useChainId();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   
@@ -67,6 +69,17 @@ export function CreateIntentForm({ onIntentCreated }: CreateIntentFormProps) {
   // Handle transaction confirmation
   useEffect(() => {
     if (isConfirmed && hash) {
+      // Record the transaction in history
+      addTransaction({
+        hash: hash,
+        type: 'creation',
+        description: `Created Payment Intent: $${formData.totalCap} USDC`,
+        amount: 0, // Intent creation doesn't cost USDC
+        token: 'SEI',
+        from: address || '',
+        to: process.env.NEXT_PUBLIC_FACTORY_ADDRESS || '',
+      });
+      
       const explorerUrl = getExplorerUrl(chainId, hash);
       toast.success("Payment Intent Created!", `Transaction: ${formatTransactionHash(hash)}`);
       

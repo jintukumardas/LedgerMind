@@ -48,6 +48,20 @@ const INTENT_ABI = [
     "outputs": [{"name": "", "type": "uint8"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paused",
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "hasRestrictedMerchants",
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ] as const;
 
@@ -60,6 +74,8 @@ export interface PaymentIntent {
   start: bigint;
   end: bigint;
   state: number; // 0 = Active, 1 = Revoked, 2 = Expired
+  paused: boolean;
+  hasRestrictedMerchants: boolean;
 }
 
 export function usePaymentIntents() {
@@ -110,10 +126,12 @@ export function usePaymentIntents() {
             client: publicClient,
           });
 
-          const [agent, limits, state] = await Promise.all([
+          const [agent, limits, state, paused, hasRestrictedMerchants] = await Promise.all([
             intent.read.agent(),
             intent.read.limits(),
             intent.read.currentState(),
+            intent.read.paused(),
+            intent.read.hasRestrictedMerchants(),
           ]);
 
           return {
@@ -125,6 +143,8 @@ export function usePaymentIntents() {
             start: limits[3],
             end: limits[4],
             state: Number(state),
+            paused: Boolean(paused),
+            hasRestrictedMerchants: Boolean(hasRestrictedMerchants),
           };
         });
 
@@ -175,10 +195,12 @@ export function usePaymentIntents() {
             client: publicClient,
           });
 
-          const [agent, limits, state] = await Promise.all([
+          const [agent, limits, state, paused, hasRestrictedMerchants] = await Promise.all([
             intent.read.agent(),
             intent.read.limits(),
             intent.read.currentState(),
+            intent.read.paused(),
+            intent.read.hasRestrictedMerchants(),
           ]);
 
           return {
@@ -190,6 +212,8 @@ export function usePaymentIntents() {
             start: limits[3],
             end: limits[4],
             state: Number(state),
+            paused: Boolean(paused),
+            hasRestrictedMerchants: Boolean(hasRestrictedMerchants),
           };
         });
 

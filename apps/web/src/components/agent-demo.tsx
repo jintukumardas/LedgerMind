@@ -9,11 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePaymentIntents } from '@/hooks/use-payment-intents';
+import { useTransactionHistory } from '@/hooks/use-transaction-history';
 import { getExplorerUrl, formatTransactionHash } from '@/lib/explorer';
 import { parseUnits } from 'viem';
 import { agentWallet } from '@/lib/agent-wallet';
 import { parseContractError } from '@/lib/error-parser';
-import { Bot, Zap, DollarSign, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { useSavedMerchants } from '@/hooks/use-saved-merchants';
+import { Bot, Zap, DollarSign, CheckCircle, AlertCircle, ExternalLink, Plus } from 'lucide-react';
 
 // Payment Intent ABI for execute function
 const INTENT_ABI = [
@@ -48,9 +50,13 @@ export function AgentDemo() {
   const [recipient, setRecipient] = useState('0x742d35cc6E09C8B8D4F0C07A9bCa8Fb2E9e91891');
   const [amount, setAmount] = useState('25');
   const [selectedIntent, setSelectedIntent] = useState('');
+  const [selectedMerchant, setSelectedMerchant] = useState('');
+  const [useCustomAddress, setUseCustomAddress] = useState(false);
   
   const { isConnected } = useAccount();
   const { intents, refetch } = usePaymentIntents();
+  const { merchants } = useSavedMerchants();
+  const { addTransaction } = useTransactionHistory();
   const { toast } = useToast();
   const chainId = useChainId();
   const [hash, setHash] = useState<`0x${string}` | undefined>();
@@ -83,6 +89,21 @@ export function AgentDemo() {
     ));
   };
 
+  const handleMerchantSelection = (merchantId: string) => {
+    if (merchantId === 'custom') {
+      setUseCustomAddress(true);
+      setSelectedMerchant('');
+      setRecipient('');
+    } else {
+      const merchant = merchants.find(m => m.id === merchantId);
+      if (merchant) {
+        setUseCustomAddress(false);
+        setSelectedMerchant(merchantId);
+        setRecipient(merchant.address);
+      }
+    }
+  };
+
   // Handle transaction confirmation
   useEffect(() => {
     if (isConfirmed && hash) {
@@ -95,6 +116,17 @@ export function AgentDemo() {
         
         // Clear the current payment action ID
         setCurrentPaymentActionId(null);
+        
+        // Record the transaction in history
+        addTransaction({
+          hash: hash,
+          type: 'agent_usage',
+          description: `AI Agent Payment: $${amount} USDC to ${recipient.slice(0, 10)}...`,
+          amount: parseFloat(amount),
+          token: 'USDC',
+          from: lastAction.from || '',
+          to: recipient,
+        });
         
         toast.success("AI Agent Payment Complete", `Transaction: ${formatTransactionHash(hash)}`);
         
@@ -408,13 +440,50 @@ export function AgentDemo() {
                 </select>
               </div>
               <div>
-                <Label htmlFor="recipient">Merchant Address</Label>
-                <Input
-                  id="recipient"
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="0x..."
-                />
+                <Label htmlFor="merchant">Select Merchant</Label>
+                {!useCustomAddress ? (
+                  <div className="space-y-2">
+                    <select
+                      id="merchant"
+                      value={selectedMerchant}
+                      onChange={(e) => handleMerchantSelection(e.target.value)}
+                      className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                    >
+                      <option value="">Choose a saved merchant...</option>
+                      {merchants.map((merchant) => (
+                        <option key={merchant.id} value={merchant.id}>
+                          {merchant.icon} {merchant.name} ({merchant.address.slice(0, 6)}...)
+                        </option>
+                      ))}
+                      <option value="custom">+ Use custom address</option>
+                    </select>
+                    {selectedMerchant && (
+                      <div className="text-xs text-muted-foreground">
+                        Address: {recipient}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={recipient}
+                        onChange={(e) => setRecipient(e.target.value)}
+                        placeholder="0x..."
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setUseCustomAddress(false);
+                          setRecipient('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             

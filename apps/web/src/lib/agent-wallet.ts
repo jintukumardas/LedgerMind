@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { createWalletClient, createPublicClient, http } from 'viem';
+import { createWalletClient, createPublicClient, http, isAddress, getAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { seiTestnet } from 'viem/chains';
 
@@ -41,6 +41,19 @@ export class AgentWallet {
     receiptHash: `0x${string}`,
     receiptURI: string
   ) {
+    // Validate addresses first
+    if (!isAddress(intentAddress)) {
+      throw new Error(`Invalid payment intent address: ${intentAddress}. Please check the address format.`);
+    }
+    
+    if (!isAddress(merchant)) {
+      throw new Error(`Invalid merchant address: ${merchant}. Please verify the recipient address is correct.`);
+    }
+
+    // Normalize addresses to checksum format
+    const normalizedIntentAddress = getAddress(intentAddress);
+    const normalizedMerchant = getAddress(merchant);
+
     const INTENT_ABI = [
       {
         "inputs": [
@@ -58,10 +71,10 @@ export class AgentWallet {
 
     try {
       const hash = await this.walletClient.writeContract({
-        address: intentAddress,
+        address: normalizedIntentAddress,
         abi: INTENT_ABI,
         functionName: 'execute',
-        args: [merchant, amount, receiptHash, receiptURI],
+        args: [normalizedMerchant, amount, receiptHash, receiptURI],
         account: this.account,
         chain: seiTestnet,
       });
@@ -70,20 +83,36 @@ export class AgentWallet {
     } catch (error) {
       console.error('Agent payment execution failed:', error);
       
-      // Add more context to the error for better debugging
+      // Provide user-friendly error messages
       if (error instanceof Error) {
-        const enhancedError = new Error(error.message);
-        enhancedError.name = error.name;
-        enhancedError.stack = error.stack;
-        // Add additional context
-        (enhancedError as any).intentAddress = intentAddress;
-        (enhancedError as any).merchant = merchant;
+        let userMessage = '';
+        
+        if (error.message.includes('insufficient funds')) {
+          userMessage = 'Insufficient funds in the payment intent. Please fund the intent or check the balance.';
+        } else if (error.message.includes('reverted')) {
+          userMessage = 'Transaction was rejected by the smart contract. This might be due to spending limits or intent status.';
+        } else if (error.message.includes('network')) {
+          userMessage = 'Network connection issue. Please check your internet connection and try again.';
+        } else if (error.message.includes('InvalidAddressError')) {
+          userMessage = 'Invalid address format. Please verify the recipient address is correct.';
+        } else if (error.message.includes('gas')) {
+          userMessage = 'Transaction failed due to gas issues. Please ensure you have enough SEI for gas fees.';
+        } else {
+          userMessage = 'Payment execution failed. Please check the payment intent status and try again.';
+        }
+        
+        const enhancedError = new Error(userMessage);
+        enhancedError.name = 'PaymentExecutionError';
+        // Store original error for debugging
+        (enhancedError as any).originalError = error.message;
+        (enhancedError as any).intentAddress = normalizedIntentAddress;
+        (enhancedError as any).merchant = normalizedMerchant;
         (enhancedError as any).amount = amount.toString();
         (enhancedError as any).agentAddress = this.getAddress();
         throw enhancedError;
       }
       
-      throw error;
+      throw new Error('Unknown error occurred during payment execution. Please try again.');
     }
   }
 
@@ -130,6 +159,14 @@ export class AgentWallet {
       throw new Error('USDC address not configured');
     }
 
+    // Validate intent address
+    if (!isAddress(intentAddress)) {
+      throw new Error(`Invalid payment intent address: ${intentAddress}. Please verify the address is correct.`);
+    }
+
+    // Normalize address
+    const normalizedIntentAddress = getAddress(intentAddress);
+
     const ERC20_ABI = [
       {
         "inputs": [
@@ -148,7 +185,7 @@ export class AgentWallet {
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'transfer',
-        args: [intentAddress, amount],
+        args: [normalizedIntentAddress, amount],
         account: this.account,
         chain: seiTestnet,
       });
@@ -156,7 +193,32 @@ export class AgentWallet {
       return hash;
     } catch (error) {
       console.error('Failed to fund payment intent:', error);
-      throw error;
+      
+      // Provide user-friendly error messages
+      if (error instanceof Error) {
+        let userMessage = '';
+        
+        if (error.message.includes('insufficient funds')) {
+          userMessage = 'Insufficient USDC balance to fund the payment intent. Please add USDC to your wallet.';
+        } else if (error.message.includes('allowance')) {
+          userMessage = 'USDC transfer not approved. Please approve the USDC spending first.';
+        } else if (error.message.includes('InvalidAddressError')) {
+          userMessage = 'Invalid payment intent address. Please verify the address is correct.';
+        } else if (error.message.includes('network')) {
+          userMessage = 'Network connection issue. Please check your internet connection and try again.';
+        } else {
+          userMessage = 'Failed to fund payment intent. Please check your balance and try again.';
+        }
+        
+        const enhancedError = new Error(userMessage);
+        enhancedError.name = 'FundingError';
+        (enhancedError as any).originalError = error.message;
+        (enhancedError as any).intentAddress = normalizedIntentAddress;
+        (enhancedError as any).amount = amount.toString();
+        throw enhancedError;
+      }
+      
+      throw new Error('Unknown error occurred while funding payment intent. Please try again.');
     }
   }
 }

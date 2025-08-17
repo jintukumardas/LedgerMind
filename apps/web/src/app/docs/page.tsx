@@ -109,13 +109,59 @@ npm run dev
             </div>
             
             <div className="p-4 rounded-lg border bg-muted/50">
-              <h3 className="font-semibold mb-2">Available tools and methods</h3>
-              <ul className="text-sm space-y-2">
-                <li><code className="bg-gray-200 px-2 py-1 rounded">create_intent</code> - Create new payment intents</li>
-                <li><code className="bg-gray-200 px-2 py-1 rounded">execute_payment</code> - Execute payments through intents</li>
-                <li><code className="bg-gray-200 px-2 py-1 rounded">list_intents</code> - List payment intents for an agent</li>
-                <li><code className="bg-gray-200 px-2 py-1 rounded">get_intent_details</code> - Get detailed intent information</li>
-                <li><code className="bg-gray-200 px-2 py-1 rounded">revoke_intent</code> - Revoke active payment intents</li>
+              <h3 className="font-semibold mb-2">Available MCP Tools</h3>
+              <div className="space-y-3 text-sm">
+                <div className="bg-white p-3 rounded border">
+                  <h4 className="font-medium text-blue-600">create_intent</h4>
+                  <p className="text-gray-600 mb-2">Create new payment intents with spending limits and restrictions</p>
+                  <p className="text-xs"><strong>Usage:</strong> "Create a payment intent for $1000 total, $100 per transaction, valid for 30 days"</p>
+                </div>
+                
+                <div className="bg-white p-3 rounded border">
+                  <h4 className="font-medium text-green-600">execute_payment</h4>
+                  <p className="text-gray-600 mb-2">Execute secure payments through existing payment intents</p>
+                  <p className="text-xs"><strong>Usage:</strong> "Pay $25 USDC to 0x742d35Cc6Af09C8B8B4f0C07A9bCa8Fb2E9e9189 using my payment intent"</p>
+                </div>
+                
+                <div className="bg-white p-3 rounded border">
+                  <h4 className="font-medium text-purple-600">list_intents</h4>
+                  <p className="text-gray-600 mb-2">List all payment intents for your agent address</p>
+                  <p className="text-xs"><strong>Usage:</strong> "Show me all my payment intents" or "List my active intents"</p>
+                </div>
+                
+                <div className="bg-white p-3 rounded border">
+                  <h4 className="font-medium text-orange-600">get_balance</h4>
+                  <p className="text-gray-600 mb-2">Check SEI and USDC balances for any address</p>
+                  <p className="text-xs"><strong>Usage:</strong> "Check my wallet balance" or "What's my USDC balance?"</p>
+                </div>
+                
+                <div className="bg-white p-3 rounded border">
+                  <h4 className="font-medium text-red-600">revoke_intent</h4>
+                  <p className="text-gray-600 mb-2">Revoke active payment intents to stop further spending</p>
+                  <p className="text-xs"><strong>Usage:</strong> "Revoke my payment intent at address 0x..."</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-lg border bg-blue-50 border-blue-200">
+              <h3 className="font-semibold mb-2 text-blue-800">💡 Getting Started with MCP</h3>
+              <div className="space-y-2 text-sm text-blue-700">
+                <p><strong>Step 1:</strong> Install the MCP server in Claude Desktop or your preferred AI tool</p>
+                <p><strong>Step 2:</strong> Try asking: <em>"Create a payment intent for $500 total, $50 per transaction, valid for 7 days"</em></p>
+                <p><strong>Step 3:</strong> Fund your intent: <em>"Check my balance and fund the payment intent if needed"</em></p>
+                <p><strong>Step 4:</strong> Make payments: <em>"Pay $25 USDC to [merchant address] using my payment intent"</em></p>
+                <p><strong>Step 5:</strong> Monitor usage: <em>"Show me all my payment intents and their status"</em></p>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
+              <h3 className="font-semibold mb-2 text-yellow-800">⚠️ Security Best Practices</h3>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• Never share your private keys with the AI or in chat logs</li>
+                <li>• Set reasonable spending limits for your payment intents</li>
+                <li>• Regularly review your transaction history and intent usage</li>
+                <li>• Use merchant allowlists for recurring payments to trusted addresses</li>
+                <li>• Set short durations for testing and longer for production use</li>
               </ul>
             </div>
             
