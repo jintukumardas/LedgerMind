@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     description: 'Secure, on-chain spending accounts for AI agents with transparent audit trails',
   },
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: '/logo.ico',
+    shortcut: '/logo.ico',
+    apple: '/logo.ico',
   },
 };
 
@@ -49,9 +49,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      </head>
       <body className={cn(
         inter.className,
         'min-h-screen bg-background font-sans antialiased'
