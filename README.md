@@ -9,6 +9,8 @@
 
 LedgerMind solves the trust problem in autonomous AI agent commerce by creating secure, limited-scope payment intents with full transparency and user control.
 
+<img width="1024" height="500" alt="image" src="https://github.com/user-attachments/assets/bfed4710-f226-412c-aa0e-d2379a7b14f2" />
+
 ## ✨ **What's New**
 
 🎉 **Major Updates** - Complete rewrite with production-ready features:
