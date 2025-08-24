@@ -37,7 +37,9 @@ export function TransactionHistory() {
     isLoading, 
     error, 
     refetch,
-    getTransactionById 
+    getTransactionById,
+    isUsingCache,
+    addTransactionToCache
   } = useTransactionHistory();
   
   const [filteredTransactions, setFilteredTransactions] = useState<BlockchainTransaction[]>([]);
@@ -242,6 +244,12 @@ export function TransactionHistory() {
           </h2>
           <p className="text-muted-foreground">
             Real blockchain transactions from your connected wallet with verifiable receipts
+            {isUsingCache && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                <CheckCircle className="h-3 w-3" />
+                Fast IPFS Cache
+              </span>
+            )}
           </p>
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">

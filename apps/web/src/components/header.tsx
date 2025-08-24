@@ -4,12 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/wallet-connect';
+import { NetworkBanner } from '@/components/network-banner';
 import { Home, FileText, BarChart3 } from 'lucide-react';
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-6">
+    <>
+      <NetworkBanner />
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center space-x-3">
@@ -54,5 +57,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }

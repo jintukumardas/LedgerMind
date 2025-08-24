@@ -54,14 +54,17 @@ export async function handleListIntents(args: any): Promise<any> {
     
     if (parsed.payer) {
       // Get intents for specific payer
-      intentAddresses = await factory.getAllIntentsForPayer(parsed.payer, offset, limit);
+      const allIntents = await factory.getPayerIntents(parsed.payer);
+      intentAddresses = allIntents.slice(offset, offset + limit);
     } else if (parsed.agent) {
       // Get intents for specific agent
-      intentAddresses = await factory.getAllIntentsForAgent(parsed.agent, offset, limit);
+      const allIntents = await factory.getAgentIntents(parsed.agent);
+      intentAddresses = allIntents.slice(offset, offset + limit);
     } else {
       // Get all intents for the current payer
       const payerAddress = blockchainClient.getPayerWallet().address;
-      intentAddresses = await factory.getAllIntentsForPayer(payerAddress, offset, limit);
+      const allIntents = await factory.getPayerIntents(payerAddress);
+      intentAddresses = allIntents.slice(offset, offset + limit);
     }
     
     const intents: PaymentIntentInfo[] = [];

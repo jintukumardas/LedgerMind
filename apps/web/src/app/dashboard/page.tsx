@@ -11,6 +11,8 @@ import { AgentMarketplace } from '@/components/agent-marketplace';
 import { TransactionHistory } from '@/components/transaction-history';
 import { PersonalAssistant } from '@/components/personal-assistant';
 import { MerchantManagement } from '@/components/merchant-management';
+import { AgentReceipts } from '@/components/agent-receipts';
+import { CrossChainPreferences } from '@/components/cross-chain-preferences';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,11 +28,13 @@ import {
   Store,
   Beaker,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Receipt,
+  Sliders
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'marketplace' | 'history' | 'merchants' | 'integrations'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'agents' | 'marketplace' | 'history' | 'merchants' | 'integrations' | 'receipts' | 'preferences'>('dashboard');
   const { isConnected } = useAccount();
   const { intents, refetch } = usePaymentIntents();
   const { experimentalEnabled, toggleExperimental } = useExperimentalFeatures();
@@ -74,13 +78,13 @@ export default function Dashboard() {
       description: 'Discover and use agents',
       experimental: true
     },
-    {
-      id: 'history' as const,
-      title: 'Transaction History',
-      icon: History,
-      description: 'View all transactions',
-      experimental: false
-    },
+    // {
+    //   id: 'history' as const,
+    //   title: 'Transaction History',
+    //   icon: History,
+    //   description: 'View all transactions',
+    //   experimental: false
+    // },
     {
       id: 'merchants' as const,
       title: 'Merchants',
@@ -94,6 +98,20 @@ export default function Dashboard() {
       icon: Settings,
       description: 'Setup guides and SDKs',
       experimental: false
+    },
+    {
+      id: 'receipts' as const,
+      title: 'Agent Receipts',
+      icon: Receipt,
+      description: 'AI decisions & transaction receipts',
+      experimental: true
+    },
+    {
+      id: 'preferences' as const,
+      title: 'Cross-Chain Preferences',
+      icon: Sliders,
+      description: 'Configure cross-chain transactions',
+      experimental: true
     }
   ];
 
@@ -260,6 +278,8 @@ export default function Dashboard() {
         {activeTab === 'history' && <TransactionHistory />}
         {activeTab === 'merchants' && <MerchantManagement />}
         {activeTab === 'integrations' && <AgentSetup />}
+        {activeTab === 'receipts' && <AgentReceipts />}
+        {activeTab === 'preferences' && <CrossChainPreferences />}
       </div>
     </div>
   );

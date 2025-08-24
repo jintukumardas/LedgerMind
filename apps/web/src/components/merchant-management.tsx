@@ -215,6 +215,9 @@ export function MerchantManagement() {
           <h2 className="text-3xl font-bold flex items-center gap-2">
             <Store className="h-8 w-8" />
             Merchant Management
+            <Badge variant="outline" className="text-sm">
+              Experimental
+            </Badge>
           </h2>
           <p className="text-muted-foreground">
             Manage your regular payment destinations and track spending patterns

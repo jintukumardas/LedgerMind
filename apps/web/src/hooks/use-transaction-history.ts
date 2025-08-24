@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, usePublicClient, useChainId } from 'wagmi';
 import { parseAbiItem, getAddress, formatUnits } from 'viem';
 import { useRecentTransactions } from './use-recent-transactions';
+import { useTransactionCache } from './use-transaction-cache';
 
 export interface BlockchainTransaction {
   id: string;
@@ -35,6 +36,15 @@ export function useTransactionHistory() {
   const publicClient = usePublicClient();
   const chainId = useChainId();
   const { getFormattedTransactions, addTransaction } = useRecentTransactions();
+  const { 
+    cachedTransactions, 
+    isLoadingCache, 
+    cacheError,
+    loadCachedTransactions,
+    saveTransactionsToCache,
+    addTransactionToCache,
+    isCacheValid 
+  } = useTransactionCache();
   
   const FACTORY_ADDRESS = "0xfF0e7F71a0e19E0BF037Bd90Ba30A2Ee409E53a7" as const;
   const USDC_ADDRESS = "0x4fCF1784B31630811181f670Aea7A7bEF803eaED" as const;
@@ -54,11 +64,19 @@ export function useTransactionHistory() {
     setError(null);
 
     try {
-      // Strategy 1: Get stored transactions from localStorage
+      // Strategy 1: Check IPFS cache first for fast loading
+      if (isCacheValid() && cachedTransactions.length > 0) {
+        console.log('Using cached transactions from IPFS:', cachedTransactions.length);
+        setTransactions(cachedTransactions);
+        setIsLoading(false);
+        return;
+      }
+
+      // Strategy 2: Get stored transactions from localStorage
       const storedTransactions = getFormattedTransactions();
       console.log('Loaded stored transactions:', storedTransactions.length);
 
-      // Strategy 2: Try to get a few recent blockchain transactions if we have publicClient
+      // Strategy 3: Try to get a few recent blockchain transactions if we have publicClient
       let blockchainTransactions: BlockchainTransaction[] = [];
       
       if (publicClient && storedTransactions.length < 5) {
@@ -212,6 +230,13 @@ export function useTransactionHistory() {
       console.log(`Final transaction count: ${finalTransactions.length} (${storedTransactions.length} stored + ${blockchainTransactions.length} blockchain + ${demoTransactions.length} demo)`);
       setTransactions(finalTransactions);
       
+      // Strategy 4: Save to IPFS cache for next time (don't await to avoid blocking UI)
+      if (finalTransactions.length > 0) {
+        saveTransactionsToCache(finalTransactions).catch(err => 
+          console.warn('Failed to save to IPFS cache:', err)
+        );
+      }
+      
     } catch (err) {
       console.error('Error fetching transaction history:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch transactions');
@@ -277,12 +302,17 @@ export function useTransactionHistory() {
 
   return {
     transactions,
-    isLoading,
-    error,
+    isLoading: isLoading || isLoadingCache,
+    error: error || cacheError,
     refetch,
     getTransactionById,
     getTransactionsByType,
     getTransactionsByIntent,
     addTransaction, // Export for recording new transactions
+    // IPFS cache functions
+    addTransactionToCache,
+    isCacheValid,
+    cachedTransactions,
+    isUsingCache: isCacheValid() && cachedTransactions.length > 0,
   };
 }

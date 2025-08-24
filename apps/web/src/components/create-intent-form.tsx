@@ -116,6 +116,42 @@ export function CreateIntentForm({ onIntentCreated }: CreateIntentFormProps) {
     }
   }, [isConfirmed, hash, chainId, toast, onIntentCreated]);
 
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!formData.agent || !formData.agent.match(/^0x[a-fA-F0-9]{40}$/)) {
+      errors.push("Agent address must be a valid Ethereum address");
+    }
+    
+    if (!formData.totalCap || parseFloat(formData.totalCap) <= 0) {
+      errors.push("Total cap must be greater than 0");
+    }
+    
+    if (!formData.perTxCap || parseFloat(formData.perTxCap) <= 0) {
+      errors.push("Per transaction cap must be greater than 0");
+    }
+    
+    if (parseFloat(formData.perTxCap) > parseFloat(formData.totalCap)) {
+      errors.push("Per transaction cap cannot exceed total cap");
+    }
+    
+    if (!formData.days || parseInt(formData.days) < 1 || parseInt(formData.days) > 365) {
+      errors.push("Duration must be between 1 and 365 days");
+    }
+    
+    if (formData.merchants) {
+      const merchantAddresses = formData.merchants.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0);
+      for (const addr of merchantAddresses) {
+        if (!addr.match(/^0x[a-fA-F0-9]{40}$/)) {
+          errors.push(`Invalid merchant address: ${addr}`);
+          break;
+        }
+      }
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -132,6 +168,17 @@ export function CreateIntentForm({ onIntentCreated }: CreateIntentFormProps) {
       toast({
         title: "Configuration error",
         description: "Factory address not configured",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate form data
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: validationErrors[0],
         variant: "destructive",
       });
       return;

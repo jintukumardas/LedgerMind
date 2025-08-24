@@ -74,13 +74,24 @@ forge script script/Deploy.s.sol \
 # Update .env with the deployed FACTORY_ADDRESS
 ```
 
-### 2. Start MCP Server
+### 2. Configure MCP Server for Claude Code
 
 ```bash
 cd packages/mcp
 npm run build
-npm start
+
+# Add MCP server to Claude Code (replace with your actual paths)
+claude mcp add ledgermind \
+  --env PRIVATE_KEY_PAYER=$PRIVATE_KEY_PAYER \
+  --env PRIVATE_KEY_AGENT=$PRIVATE_KEY_AGENT \
+  --env FACTORY_ADDRESS=$FACTORY_ADDRESS \
+  -- node /absolute/path/to/your/project/packages/mcp/dist/index.js
+
+# Verify connection
+claude mcp list
 ```
+
+**Important**: Replace `/absolute/path/to/your/project/` with your actual project path.
 
 ### 3. Start Frontend
 

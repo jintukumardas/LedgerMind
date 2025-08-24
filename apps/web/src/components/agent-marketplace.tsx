@@ -276,7 +276,12 @@ export function AgentMarketplace() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Agent Marketplace</h2>
+          <h2 className="text-3xl font-bold flex items-center gap-3">
+            Agent Marketplace
+            <Badge variant="outline" className="text-sm">
+              Experimental
+            </Badge>
+          </h2>
           <p className="text-muted-foreground">
             Discover and interact with AI agents for blockchain operations
           </p>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
 import { Header } from '@/components/header';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { cn } from '@/lib/utils';
 import './globals.css';
 
@@ -46,10 +47,12 @@ export default function RootLayout({
         inter.className,
         'min-h-screen bg-background font-sans antialiased'
       )}>
-        <Providers>
-          <Header />
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            <Header />
+            {children}
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

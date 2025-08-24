@@ -9,7 +9,7 @@
 
 LedgerMind solves the trust problem in autonomous AI agent commerce by creating secure, limited-scope payment intents with full transparency and user control.
 
-## ✨ **What's New in v2.0**
+## ✨ **What's New**
 
 🎉 **Major Updates** - Complete rewrite with production-ready features:
 
@@ -20,6 +20,15 @@ LedgerMind solves the trust problem in autonomous AI agent commerce by creating 
 - 🧾 **Advanced Transaction History**: Filtering, receipt verification, merchant management
 - 🔐 **Enhanced Security**: Address validation, user-friendly error messages
 - 📱 **Professional UI**: Polished interface with loading states and error handling
+
+### 🧪 **Experimental Features** (Latest Update)
+
+- 🌍 **Cross-Chain Support**: Li.Fi SDK integration for cross-chain transactions (mainnet only)
+- ⚙️ **Transaction Preferences**: Configure gas optimization vs speed, auto-approval settings
+- 🧾 **AI Agent Receipts**: Comprehensive tracking of AI decisions and transaction receipts
+- 📂 **IPFS Data Storage**: Decentralized storage for agent data and receipts via Pinata
+- 🔄 **Cross-Chain Preferences**: User-configurable settings for cross-chain operations
+- 📈 **Advanced Analytics**: Track agent performance, decision confidence, and spending patterns
 
 ## 🎯 **Problem Statement**
 
@@ -119,16 +128,44 @@ forge script script/Deploy.s.sol --rpc-url $SEI_RPC_HTTP --private-key $PRIVATE_
 # Update .env with deployed FACTORY_ADDRESS
 ```
 
-### 5. Run the MCP Server
+### 5. Set Up the MCP Server
 
 ```bash
 cd packages/mcp
 npm install
 npm run build
-npm start
 ```
 
-### 6. Launch the Frontend
+### 6. Configure Claude Code MCP Integration
+
+Add the MCP server to Claude Code:
+
+```bash
+# From the project root directory
+claude mcp add ledgermind \
+  --env PRIVATE_KEY_PAYER=your_payer_private_key \
+  --env PRIVATE_KEY_AGENT=your_agent_private_key \
+  --env FACTORY_ADDRESS=your_deployed_factory_address \
+  -- node /absolute/path/to/packages/mcp/dist/index.js
+```
+
+**Important**: Replace `/absolute/path/to/` with your actual project path. For example:
+```bash
+claude mcp add ledgermind \
+  --env PRIVATE_KEY_PAYER=ceb7d3886c6fc074059d2d60390cbc716c622345af0b8e0cc43bd2a4cded7af9 \
+  --env PRIVATE_KEY_AGENT=ceb7d3886c6fc074059d2d60390cbc716c622345af0b8e0cc43bd2a4cded7af9 \
+  --env FACTORY_ADDRESS=0xfF0e7F71a0e19E0BF037Bd90Ba30A2Ee409E53a7 \
+  -- node /Users/username/ledgermind/packages/mcp/dist/index.js
+```
+
+Verify the MCP server is connected:
+```bash
+claude mcp list
+```
+
+You should see: `✓ Connected` next to the ledgermind server.
+
+### 7. Launch the Frontend
 
 ```bash
 cd apps/web
@@ -294,9 +331,16 @@ startCommand = "cd packages/mcp && npm start"
 
 ### 🔌 **MCP Integration**
 - **Native Claude Support**: Deep integration with Claude Desktop and Claude Code
-- **Tool Documentation**: Clear usage examples and parameter descriptions
+- **5 Core Tools**: Complete payment intent lifecycle management
 - **Error Context**: Detailed error information for debugging
 - **Security Guidance**: Built-in security best practices and warnings
+
+#### Available MCP Tools:
+- `create_intent`: Create new payment intents with spending limits and constraints
+- `list_intents`: View all payment intents with filtering and status information
+- `execute_payment`: Execute payments through existing intents with receipt generation
+- `revoke_intent`: Revoke/disable payment intents to stop agent spending
+- `top_up_intent`: Add additional funds to existing payment intents
 
 ## 🚀 **Usage Examples**
 
@@ -334,3 +378,52 @@ Agent: I'll execute that payment through your payment intent...
 ### Personal Assistant Query
 ```
 User: [Clicks "📈 Spending Analysis" quick action]
+Assistant: Based on your transaction history, you've spent $340 USDC across 15 transactions this month. Your top merchant is DeFi Protocol X ($120), followed by API Services ($85). Your spending is up 23% from last month.
+```
+
+## 🔧 **MCP Troubleshooting**
+
+### Common Setup Issues
+
+#### ❌ "Failed to connect" Error
+```bash
+claude mcp list
+# Shows: ledgermind - ✗ Failed to connect
+```
+
+**Solutions:**
+1. **Check build output path**: Ensure you're using `dist/index.js` not `build/index.js`
+2. **Use absolute paths**: Replace relative paths with full absolute paths
+3. **Verify build completed**: Run `npm run build` in packages/mcp directory
+
+```bash
+# Correct setup example
+claude mcp add ledgermind \
+  --env PRIVATE_KEY_PAYER=your_key \
+  --env PRIVATE_KEY_AGENT=your_key \
+  --env FACTORY_ADDRESS=0x... \
+  -- node /full/absolute/path/to/packages/mcp/dist/index.js
+```
+
+#### ❌ "Module not found" Error
+- Ensure you've run `npm install && npm run build` in the packages/mcp directory
+- Check that the dist/index.js file exists
+- Verify Node.js version is 20+ (`node --version`)
+
+#### ❌ Environment Variables Not Working
+- Double-check private keys are valid hex strings (64 characters)
+- Ensure FACTORY_ADDRESS matches your deployed contract
+- Test environment variables: `echo $PRIVATE_KEY_PAYER`
+
+### Testing MCP Connection
+
+```bash
+# 1. Verify server builds successfully
+cd packages/mcp && npm run build
+
+# 2. Check MCP server status
+claude mcp list
+
+# 3. Test with Claude Code
+# The ledgermind server should show ✓ Connected
+```
