@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { usePaymentIntents, PaymentIntent } from '@/hooks/use-payment-intents';
 import { IntentManagement } from '@/components/intent-management';
 import { formatAddress, formatTokenAmount } from '@/lib/utils';
-import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Settings, Plus } from 'lucide-react';
+import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Settings, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function IntentCard({ intent }: { intent: PaymentIntent }) {
@@ -71,6 +72,8 @@ export function PaymentIntentsList() {
   const { intents, loading, error, refetch } = usePaymentIntents();
   const [currentPage, setCurrentPage] = useState(1);
   const [managingIntent, setManagingIntent] = useState<string | null>(null);
+  const [searchAddress, setSearchAddress] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const itemsPerPage = 5;
   
   // Calculate pagination

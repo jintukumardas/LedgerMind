@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { AlertTriangle, CheckCircle, Plus, RefreshCw, Wifi } from 'lucide-react'
 
 export function NetworkStatus() {
   const [mounted, setMounted] = useState(false);
+  const { isConnected } = useAccount();
   const {
     currentChainId,
     isOnSeiTestnet,
@@ -37,7 +39,7 @@ export function NetworkStatus() {
     );
   }
 
-  if (!currentChainId) {
+  if (!isConnected || !currentChainId) {
     return (
       <Card className="border-amber-200 bg-amber-50">
         <CardContent className="p-4">

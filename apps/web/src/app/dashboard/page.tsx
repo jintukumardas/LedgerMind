@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePaymentIntents } from '@/hooks/use-payment-intents';
 import { useExperimentalFeatures } from '@/hooks/use-experimental-features';
-import { formatTokenAmount } from '@/lib/utils';
+import { formatTokenAmount, formatAddress } from '@/lib/utils';
 import { 
   LayoutDashboard, 
   Bot, 
@@ -30,7 +30,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Receipt,
-  Sliders
+  Sliders,
+  RefreshCw
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -224,7 +225,7 @@ export default function Dashboard() {
                   <CreateIntentForm onIntentCreated={refetch} />
                   <PaymentIntentsList />
                 </div>
-                
+
                 {/* Personal Assistant - positioned at the bottom right (experimental) */}
                 {experimentalEnabled && (
                   <div className="fixed bottom-4 right-4 z-50">

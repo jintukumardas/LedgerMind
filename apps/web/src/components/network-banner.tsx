@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { useNetwork } from '@/hooks/use-network';
 import { Button } from '@/components/ui/button';
 import { X, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -8,6 +9,7 @@ import { X, AlertTriangle, RefreshCw } from 'lucide-react';
 export function NetworkBanner() {
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const { isConnected } = useAccount();
   const {
     isOnSeiTestnet,
     networkName,
@@ -19,7 +21,7 @@ export function NetworkBanner() {
     setMounted(true);
   }, []);
 
-  if (!mounted || dismissed || isOnSeiTestnet) {
+  if (!mounted || dismissed || !isConnected || isOnSeiTestnet) {
     return null;
   }
 
