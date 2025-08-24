@@ -18,7 +18,7 @@ export function Header() {
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center space-x-3">
             <Image
-              src="/logo.png"
+              src="/favicon.svg"
               alt="LedgerMind Logo"
               width={32}
               height={32}
