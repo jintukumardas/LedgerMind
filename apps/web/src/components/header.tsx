@@ -18,11 +18,12 @@ export function Header() {
           {/* Logo and Brand */}
           <Link href="/" className="flex items-center space-x-3">
             <Image
-              src="/logo.ico"
+              src="/logo.png"
               alt="LedgerMind Logo"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-8 w-8 object-contain"
+              priority
               unoptimized
             />
             <span className="text-xl font-bold gradient-text bg-gradient-to-r from-sei-red to-purple-600 bg-clip-text text-transparent">

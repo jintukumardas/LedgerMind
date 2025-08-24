@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     description: 'Secure, on-chain spending accounts for AI agents with transparent audit trails',
   },
   icons: {
-    icon: '/logo.ico',
-    shortcut: '/logo.ico',
-    apple: '/logo.ico',
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
 };
 
