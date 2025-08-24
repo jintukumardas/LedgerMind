@@ -80,14 +80,29 @@ export function useRecentTransactions() {
   };
 
   // Get formatted transactions for display
-  const getFormattedTransactions = () => {
+  const getFormattedTransactions = (): {
+    id: string;
+    hash: string;
+    type: 'creation' | 'payment' | 'funding' | 'agent_usage';
+    status: 'confirmed';
+    amount: number;
+    token: 'USDC' | 'SEI';
+    from: string;
+    to: string;
+    timestamp: Date;
+    description: string;
+    gasUsed: number;
+    blockNumber: number;
+    isVerified: boolean;
+    confirmations: number;
+  }[] => {
     return recentTransactions.map(tx => ({
       id: tx.hash,
       hash: tx.hash,
       type: tx.type,
       status: 'confirmed' as const,
       amount: tx.amount || 0,
-      token: tx.token || 'SEI',
+      token: (tx.token === 'USDC' || tx.token === 'SEI') ? tx.token : 'SEI',
       from: tx.from || '',
       to: tx.to || '',
       timestamp: new Date(tx.timestamp),

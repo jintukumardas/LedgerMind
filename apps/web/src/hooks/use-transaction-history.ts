@@ -82,19 +82,19 @@ export function useTransactionHistory() {
                 const txHash = blockTransactions[j];
                 
                 try {
-                  const transaction = await publicClient.getTransaction({ hash: txHash });
+                  const transaction = await publicClient.getTransaction({ hash: txHash as `0x${string}` });
                   
                   const isUserTransaction = 
                     transaction.from.toLowerCase() === address.toLowerCase() ||
                     transaction.to?.toLowerCase() === address.toLowerCase();
 
                   if (isUserTransaction) {
-                    const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+                    const receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
                     
                     let type: BlockchainTransaction['type'] = 'payment';
                     let description = 'Blockchain Transaction';
                     let amount = 0;
-                    let token = 'SEI';
+                    let token: 'USDC' | 'SEI' = 'SEI';
 
                     if (transaction.to?.toLowerCase() === FACTORY_ADDRESS.toLowerCase()) {
                       type = 'creation';

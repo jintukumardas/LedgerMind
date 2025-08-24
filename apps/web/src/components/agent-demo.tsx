@@ -39,6 +39,7 @@ interface AgentAction {
   description: string;
   amount?: number;
   recipient?: string;
+  from?: string;
   status: 'pending' | 'success' | 'error';
   timestamp: Date;
   txHash?: string;
