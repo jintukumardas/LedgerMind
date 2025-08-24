@@ -165,7 +165,7 @@ Create a new payment intent with spending limits and time bounds.
 - \`merchants\`: Array of allowed merchant addresses (optional)
 - \`metadata_uri\`: Metadata URI (optional)
 - \`salt\`: Random salt for deterministic address
-- \`deposit_amount\`: Initial deposit amount (in wei)
+- \`deposit_amount\`: Initial deposit amount (in wei, defaults to 1 USDC if not provided)
 
 ### execute_payment
 Execute a payment through an existing intent.

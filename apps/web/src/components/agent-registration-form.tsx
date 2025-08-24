@@ -228,7 +228,7 @@ export function AgentRegistrationForm({ onSuccess, onCancel }: AgentRegistration
 
       toast({
         title: "Agent Registered Successfully!",
-        description: `${formData.name} has been deployed to the marketplace with address ${result.agent.address.slice(0, 10)}...`,
+        description: `${formData.name} has been deployed to the marketplace with address ${result.agent.address}`,
       });
 
       onSuccess();

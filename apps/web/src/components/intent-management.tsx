@@ -370,7 +370,7 @@ export function IntentManagement({ intentAddress }: IntentManagementProps) {
                   {getIntentStatusIcon(intent)}
                   <div>
                     <CardTitle className="text-lg">
-                      Payment Intent {intent.address.slice(0, 10)}...
+                      Payment Intent {intent.address}
                     </CardTitle>
                     <CardDescription>
                       Created: {format(new Date(Number(intent.start) * 1000), 'PPP')}

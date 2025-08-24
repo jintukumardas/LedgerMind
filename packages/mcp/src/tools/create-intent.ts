@@ -13,7 +13,7 @@ const CreateIntentSchema = z.object({
   merchants: z.array(z.string()).optional().describe('Array of allowed merchant addresses'),
   metadata_uri: z.string().optional().describe('IPFS URI for intent metadata'),
   salt: z.string().describe('Salt for CREATE2 address generation'),
-  deposit_amount: z.string().describe('Initial deposit amount in wei'),
+  deposit_amount: z.string().optional().describe('Initial deposit amount in wei (defaults to 1 USDC if not provided)'),
 });
 
 export const createIntentTool: Tool = {
@@ -61,10 +61,10 @@ export const createIntentTool: Tool = {
       },
       deposit_amount: {
         type: 'string',
-        description: 'Initial deposit amount in wei',
+        description: 'Initial deposit amount in wei (defaults to 1 USDC if not provided)',
       },
     },
-    required: ['token', 'agent', 'total_cap', 'per_tx_cap', 'start', 'end', 'salt', 'deposit_amount'],
+    required: ['token', 'agent', 'total_cap', 'per_tx_cap', 'start', 'end', 'salt'],
   },
 };
 
@@ -75,9 +75,25 @@ export async function handleCreateIntent(args: any): Promise<any> {
     const factory = blockchainClient.getFactoryContract();
     const token = blockchainClient.getTokenContract(parsed.token);
     
-    // Check token allowance
+    // Auto-fund with 1 USDC (1000000 wei for 6 decimals) if deposit_amount is not provided or is 0
+    const defaultDepositAmount = '1000000'; // 1 USDC in wei (6 decimals)
+    const depositAmountString = parsed.deposit_amount && parsed.deposit_amount !== '0' ? parsed.deposit_amount : defaultDepositAmount;
+    const depositAmount = BigInt(depositAmountString);
+    
+    console.log(`Auto-funding enabled: Using ${blockchainClient.formatUnits(depositAmount)} USDC for initial deposit`);
+    
+    // Check token balance first
     const payer = blockchainClient.getPayerWallet();
-    const depositAmount = BigInt(parsed.deposit_amount);
+    const balance = await token.balanceOf(payer.address);
+    
+    if (balance < depositAmount) {
+      return {
+        success: false,
+        error: `Insufficient balance for auto-funding. Required: ${blockchainClient.formatUnits(depositAmount)} tokens, Available: ${blockchainClient.formatUnits(balance)} tokens`,
+      };
+    }
+    
+    // Check token allowance
     const allowance = await token.allowance(payer.address, config.factoryAddress);
     
     if (allowance < depositAmount) {
@@ -138,8 +154,9 @@ export async function handleCreateIntent(args: any): Promise<any> {
       txHash: tx.hash,
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed.toString(),
-      depositAmount: parsed.deposit_amount,
-      message: `Payment intent created successfully at ${intentAddress}`,
+      depositAmount: depositAmountString,
+      autoFunded: !parsed.deposit_amount || parsed.deposit_amount === '0',
+      message: `Payment intent created successfully at ${intentAddress}${(!parsed.deposit_amount || parsed.deposit_amount === '0') ? ' and auto-funded with 1 USDC' : ''}`,
     };
   } catch (error) {
     console.error('Failed to create payment intent:', error);

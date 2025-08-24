@@ -118,7 +118,7 @@ Choose what you'd like to do:`,
 
 ${activeIntents.length > 0 ? `**Active Intents:**
 ${activeIntents.map(intent => 
-  `• ${intent.agent.slice(0, 10)}...: $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} ($${(Number(intent.perTransactionCap) / 1e6).toFixed(2)}/tx max)`
+  `• ${intent.agent}: $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} ($${(Number(intent.perTransactionCap) / 1e6).toFixed(2)}/tx max)`
 ).join('\n')}` : '🔍 No active payment intents found.'}
 
 ${activeIntents.length > 0 ? 'Use "pause [agent name]" to temporarily disable an intent.' : 'Create a new intent to start making controlled payments.'}`,
@@ -134,7 +134,7 @@ ${activeIntents.length > 0 ? 'Use "pause [agent name]" to temporarily disable an
 To pause a payment intent, I need to know which one. Your active intents:
 
 ${activeIntents.map(intent => 
-  `• **${intent.agent.slice(0, 10)}...** - $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} spent`
+  `• **${intent.agent}** - $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} spent`
 ).join('\n')}
 
 Which intent would you like to pause? You can also visit the Intent Management section for full control.`
@@ -155,7 +155,7 @@ Which intent would you like to pause? You can also visit the Intent Management s
 
 ${recentTx.map(tx => 
   `• **${tx.type}** - $${tx.amount} ${tx.token}
-  ${tx.to ? `To: ${tx.to.slice(0, 10)}...` : ''}
+  ${tx.to ? `To: ${tx.to}` : ''}
   ${formatDistanceToNow(new Date(tx.timestamp), { addSuffix: true })}
   ${tx.status === 'confirmed' ? '✅' : tx.status === 'failed' ? '❌' : '⏳'}`
 ).join('\n\n')}

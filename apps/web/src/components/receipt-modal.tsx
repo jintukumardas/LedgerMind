@@ -180,7 +180,7 @@ export function ReceiptModal({ transaction, isOpen, onClose }: ReceiptModalProps
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Transaction Hash</h4>
                 <div className="flex items-center space-x-2">
-                  <code className="text-sm bg-muted px-2 py-1 rounded flex-1 truncate">
+                  <code className="text-sm bg-muted px-2 py-1 rounded flex-1 break-all">
                     {transaction.hash}
                   </code>
                   <Button
@@ -251,7 +251,7 @@ export function ReceiptModal({ transaction, isOpen, onClose }: ReceiptModalProps
               <div>
                 <p className="text-xs text-muted-foreground mb-1">From</p>
                 <div className="flex items-center space-x-2">
-                  <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
+                  <code className="text-xs bg-muted px-2 py-1 rounded flex-1 break-all">
                     {transaction.from}
                   </code>
                   <Button
@@ -267,7 +267,7 @@ export function ReceiptModal({ transaction, isOpen, onClose }: ReceiptModalProps
               <div>
                 <p className="text-xs text-muted-foreground mb-1">To</p>
                 <div className="flex items-center space-x-2">
-                  <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
+                  <code className="text-xs bg-muted px-2 py-1 rounded flex-1 break-all">
                     {transaction.to}
                   </code>
                   <Button
@@ -291,7 +291,7 @@ export function ReceiptModal({ transaction, isOpen, onClose }: ReceiptModalProps
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Receipt Hash</p>
                   <div className="flex items-center space-x-2">
-                    <code className="text-xs bg-muted px-2 py-1 rounded flex-1 truncate">
+                    <code className="text-xs bg-muted px-2 py-1 rounded flex-1 break-all">
                       {transaction.receiptHash}
                     </code>
                     <Button

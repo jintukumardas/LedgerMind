@@ -124,7 +124,7 @@ ${data.balances.USDC < 10 ? '⚠️ Your USDC balance is low. Consider funding y
           console.log('Balance check failed, using fallback response');
         }
         
-        return `I can help you check balances! For your connected wallet ${address?.slice(0, 10)}..., I can check SEI and USDC balances, as well as payment intent statuses. Let me look that up for you...`;
+        return `I can help you check balances! For your connected wallet ${address}, I can check SEI and USDC balances, as well as payment intent statuses. Let me look that up for you...`;
       }
 
       if (lowerMessage.includes('create intent') || lowerMessage.includes('new intent') || lowerMessage.includes('payment intent')) {

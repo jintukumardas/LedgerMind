@@ -463,7 +463,7 @@ export function MerchantManagement() {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Address:</span>
                           <span className="font-mono text-xs">
-                            {merchant.address.slice(0, 6)}...{merchant.address.slice(-4)}
+                            {merchant.address}
                           </span>
                         </div>
                         

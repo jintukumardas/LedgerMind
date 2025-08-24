@@ -196,7 +196,7 @@ export function TransactionHistory() {
       ));
       toast({
         title: "Merchant Updated",
-        description: `Updated ${newMerchantAddress.slice(0, 10)}... to "${newMerchantName}"`,
+        description: `Updated ${newMerchantAddress} to "${newMerchantName}"`,
       });
     } else {
       // Add new merchant
@@ -501,15 +501,15 @@ export function TransactionHistory() {
                       </div>
                       
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <span>From: {tx.from.slice(0, 10)}...{tx.from.slice(-6)}</span>
+                        <span>From: {tx.from}</span>
                         <div className="flex items-center gap-1">
                           <span>To: </span>
                           {getMerchantName(tx.to) ? (
                             <span className="text-blue-600 font-medium">
-                              {getMerchantName(tx.to)} ({tx.to.slice(0, 6)}...)
+                              {getMerchantName(tx.to)} ({tx.to})
                             </span>
                           ) : (
-                            <span>{tx.to.slice(0, 10)}...{tx.to.slice(-6)}</span>
+                            <span>{tx.to}</span>
                           )}
                           <Button
                             variant="ghost"

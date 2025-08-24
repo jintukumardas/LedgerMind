@@ -435,7 +435,7 @@ export function AgentDemo() {
                   <option value="">Choose an intent...</option>
                   {activeIntents.map((intent) => (
                     <option key={intent.address} value={intent.address}>
-                      {intent.address.slice(0, 10)}... (${Number(intent.totalCap - intent.spent) / 1e6} USDC available)
+                      {intent.address} (${Number(intent.totalCap - intent.spent) / 1e6} USDC available)
                     </option>
                   ))}
                 </select>
@@ -453,7 +453,7 @@ export function AgentDemo() {
                       <option value="">Choose a saved merchant...</option>
                       {merchants.map((merchant) => (
                         <option key={merchant.id} value={merchant.id}>
-                          {merchant.icon} {merchant.name} ({merchant.address.slice(0, 6)}...)
+                          {merchant.icon} {merchant.name} ({merchant.address})
                         </option>
                       ))}
                       <option value="custom">+ Use custom address</option>

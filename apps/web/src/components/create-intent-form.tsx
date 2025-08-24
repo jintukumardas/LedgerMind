@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useReadContract } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTransactionHistory } from '@/hooks/use-transaction-history';
-import { parseUnits } from 'viem';
+import { parseUnits, decodeEventLog } from 'viem';
 import { getExplorerUrl, formatTransactionHash } from '@/lib/explorer';
 import { ExternalLink } from 'lucide-react';
 
@@ -34,6 +34,48 @@ const FACTORY_ABI = [
     "name": "createIntent",
     "outputs": [{"name": "intent", "type": "address"}],
     "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;
+
+const USDC_ABI = [
+  {
+    "inputs": [
+      {"name": "to", "type": "address"},
+      {"name": "value", "type": "uint256"}
+    ],
+    "name": "transfer",
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "spender", "type": "address"},
+      {"name": "value", "type": "uint256"}
+    ],
+    "name": "approve",
+    "outputs": [{"name": "", "type": "bool"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "owner", "type": "address"},
+      {"name": "spender", "type": "address"}
+    ],
+    "name": "allowance",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"name": "account", "type": "address"}
+    ],
+    "name": "balanceOf",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view",
     "type": "function"
   }
 ] as const;
