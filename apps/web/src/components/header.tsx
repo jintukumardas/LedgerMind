@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { WalletConnect } from '@/components/wallet-connect';
 import { NetworkBanner } from '@/components/network-banner';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Home, FileText, BarChart3 } from 'lucide-react';
 
 export function Header() {
@@ -50,8 +51,9 @@ export function Header() {
             </Button>
           </nav>
 
-          {/* Wallet Connect */}
+          {/* Theme Toggle and Wallet Connect */}
           <div className="flex items-center space-x-2">
+            <ThemeToggle />
             <WalletConnect />
           </div>
         </div>
