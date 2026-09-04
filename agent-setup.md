@@ -21,15 +21,28 @@ Your **agent address** is simply any Ethereum wallet address that you want to au
    # Or create in MetaMask and copy the address
    ```
 
+   `cast wallet new` prints the key to your terminal. Move it straight into
+   `.env` and clear the scrollback — do not leave it in a buffer or paste it
+   into a chat.
+
 2. **Fund the agent wallet** with SEI tokens for gas fees:
    - Send some SEI tokens to the agent address
    - The agent needs SEI for transaction fees
 
-3. **Update your environment** with the agent private key:
-   ```bash
-   # Add to your .env file
-   PRIVATE_KEY_AGENT=0x...your_agent_private_key
+3. **Store the agent key in `.env`** (gitignored) and nowhere else:
    ```
+   PRIVATE_KEY_AGENT=<agent private key, no 0x prefix needed>
+   ```
+
+   The MCP server loads it with `dotenv` at startup
+   (`packages/mcp/src/config.ts`). Never pass it as a `--env` flag to
+   `claude mcp add`, and never put it in a `NEXT_PUBLIC_*` variable — that
+   prefix inlines the value into the browser bundle where any visitor can
+   read it.
+
+   > **Known limitation.** This is a plaintext key on disk. A hardware-backed
+   > store (Ledger Key Ring) was planned for ETHOnline 2026 and not shipped —
+   > see `AI_USAGE.md`. Use a dedicated testnet key with minimal funds.
 
 ## Current Setup Status
 

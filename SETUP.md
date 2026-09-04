@@ -66,9 +66,11 @@ cd ../..
 
 ```bash
 # Deploy to Sei testnet
+# Reads PRIVATE_KEY_DEPLOYER from .env rather than taking it on the
+# command line, so the key never enters shell history.
 forge script script/Deploy.s.sol \
   --rpc-url $SEI_RPC_HTTP \
-  --private-key $PRIVATE_KEY_DEPLOYER \
+  --interactives 1 \
   --broadcast
 
 # Update .env with the deployed FACTORY_ADDRESS
@@ -80,18 +82,24 @@ forge script script/Deploy.s.sol \
 cd packages/mcp
 npm run build
 
-# Add MCP server to Claude Code (replace with your actual paths)
-claude mcp add ledgermind \
-  --env PRIVATE_KEY_PAYER=$PRIVATE_KEY_PAYER \
-  --env PRIVATE_KEY_AGENT=$PRIVATE_KEY_AGENT \
-  --env FACTORY_ADDRESS=$FACTORY_ADDRESS \
-  -- node /absolute/path/to/your/project/packages/mcp/dist/index.js
+# The server loads credentials from .env at the repo root.
+# Do NOT pass keys with --env: they are written to the MCP client's
+# config file in plaintext and land in your shell history.
+claude mcp add ledgermind -- node "$PWD/dist/index.js"
 
 # Verify connection
 claude mcp list
 ```
 
-**Important**: Replace `/absolute/path/to/your/project/` with your actual project path.
+**Key handling**: `packages/mcp/src/config.ts` reads `PRIVATE_KEY_PAYER` and
+`PRIVATE_KEY_AGENT` via `dotenv` from `.env`, which is gitignored. Keep them
+there and nowhere else. A key that reaches a shell command has already leaked
+into `~/.zsh_history`.
+
+> **Known limitation.** These are still plaintext env vars on disk, not a
+> hardware-backed store. Replacing them with a Ledger Key Ring backend was
+> planned for ETHOnline 2026 but not shipped — `wallet-cli ring init` requires
+> a physical Ledger device, which was unavailable. See `AI_USAGE.md`.
 
 ### 3. Start Frontend
 
