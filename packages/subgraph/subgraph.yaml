@@ -15,10 +15,11 @@ dataSources:
       abi: PaymentIntentFactory
       # Factory was deployed at block 192211126 (2025-08-16). Sei produces
       # ~400ms blocks, so a full backfill from there is ~78M blocks and does
-      # not finish inside the event window. We index from the start of our
-      # ETHOnline 2026 work instead; every intent in this subgraph is one
-      # created during the event. See packages/subgraph/README.md.
-      startBlock: 270500000
+      # not finish inside the event window. We index from just before the
+      # first intent created during ETHOnline 2026 (block 270805825), so every
+      # intent in this subgraph is one created during the event and the
+      # initial sync completes in minutes. See packages/subgraph/README.md.
+      startBlock: 270805800
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

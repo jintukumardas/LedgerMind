@@ -89,8 +89,12 @@ export function handleExecuted(event: Executed): void {
   let amount = event.params.amount;
 
   let merchant = loadMerchant(event.params.merchant, timestamp);
-  let isNewMerchantToday = merchant.lastPaidAt.lt(dayStart(timestamp));
+  // loadMerchant initialises lastPaidAt to the current timestamp, so a
+  // first-time merchant would fail a bare `lastPaidAt < dayStart` test and
+  // never be counted. Treat "never paid before" as new-today explicitly.
   let isFirstEver = merchant.paymentCount == 0;
+  let isNewMerchantToday =
+    isFirstEver || merchant.lastPaidAt.lt(dayStart(timestamp));
 
   let agent = loadAgent(event.params.agent, timestamp);
   let payer = loadPayer(Address.fromBytes(intent.payer), timestamp);
