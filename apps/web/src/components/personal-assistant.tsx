@@ -45,17 +45,14 @@ export function PersonalAssistant({ className }: PersonalAssistantProps) {
     {
       id: '1',
       type: 'assistant',
-      content: `👋 Hi! I'm your personal LedgerMind assistant.
+      content: `I review the spending authority you have delegated to agents.
 
-🚧 **Development Mode** - This is a prototype with simulated AI responses. Full AI integration coming soon!
+I read your payment intents, payments and daily rollups from the LedgerMind
+subgraph on Sei Atlantic, then tell you what to change - which intents are
+over-authorised, where capital is sitting idle, and which agents can pay
+addresses you never approved.
 
-I can help you with:
-• 📊 Payment intent management
-• 💳 Transaction history analysis  
-• 📈 Spending pattern insights
-• ⚡ Account status and balances
-
-Choose what you'd like to do:`,
+Ask me anything, or start here:`,
       timestamp: new Date(),
     }
   ]);
@@ -68,10 +65,10 @@ Choose what you'd like to do:`,
 
   // Quick action suggestions
   const quickActions = [
-    { id: 'balance', label: '💰 Check Balance', query: 'Check my balance' },
-    { id: 'intents', label: '📊 Show Intents', query: 'Show my payment intents' },
-    { id: 'recent', label: '🕒 Recent Transactions', query: 'Show recent transactions' },
-    { id: 'analysis', label: '📈 Spending Analysis', query: 'Analyze my spending patterns' },
+    { id: 'review', label: 'Review my agents', query: 'Is my agent spending money sensibly? Anything I should worry about?' },
+    { id: 'idle', label: 'Find idle capital', query: 'Is any of my money sitting idle in dead intents? How do I get it back?' },
+    { id: 'exposure', label: 'Where am I exposed?', query: 'Which intents let an agent pay addresses I never approved?' },
+    { id: 'budget', label: 'Budget remaining', query: 'How much can my agents still spend, and which has the most room?' },
   ];
   
   const { isConnected, address } = useAccount();
@@ -97,216 +94,93 @@ Choose what you'd like to do:`,
     return newMessage;
   };
 
+  /**
+   * Calls the LedgerMind analysis endpoint, which pulls this payer's intents,
+   * payments and daily rollups from the subgraph and returns ranked findings
+   * plus concrete actions.
+   *
+   * Before ETHOnline 2026 this function was ~210 lines of hardcoded strings
+   * with invented market data (APYs, 24h volumes, gas prices). It never
+   * queried anything. See the pre-ethonline-2026 tag.
+   */
   const generateAssistantResponse = async (userMessage: string): Promise<{ content: string; data?: any }> => {
-    const lowerMessage = userMessage.toLowerCase();
-    
+    if (!address) {
+      return { content: 'Connect a wallet first so I know whose spending authority to review.' };
+    }
+
     try {
-      // Payment Intent Queries
-      if (lowerMessage.includes('intent') || lowerMessage.includes('spending') || lowerMessage.includes('allowance')) {
-        if (lowerMessage.includes('status') || lowerMessage.includes('show') || lowerMessage.includes('list')) {
-          const activeIntents = paymentIntents.filter(intent => intent.state === 0); // 0 = Active
-          const totalSpent = paymentIntents.reduce((sum, intent) => sum + Number(intent.spent), 0);
-          const totalAllowance = paymentIntents.reduce((sum, intent) => sum + Number(intent.totalCap), 0);
-          
+      const res = await fetch('/api/v1/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payer: address, question: userMessage }),
+      });
+
+      const body = await res.json();
+
+      if (!res.ok || !body.ok) {
+        const type = body?.error?.type;
+        if (type === 'subgraph_unavailable') {
           return {
-            content: `📊 **Your Payment Intents Summary**
-
-**Active Intents:** ${activeIntents.length}
-**Total Allowance:** $${(totalAllowance / 1e6).toLocaleString()} USDC
-**Amount Spent:** $${(totalSpent / 1e6).toLocaleString()} USDC
-**Remaining:** $${((totalAllowance - totalSpent) / 1e6).toLocaleString()} USDC
-
-${activeIntents.length > 0 ? `**Active Intents:**
-${activeIntents.map(intent => 
-  `• ${intent.agent}: $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} ($${(Number(intent.perTransactionCap) / 1e6).toFixed(2)}/tx max)`
-).join('\n')}` : '🔍 No active payment intents found.'}
-
-${activeIntents.length > 0 ? 'Use "pause [agent name]" to temporarily disable an intent.' : 'Create a new intent to start making controlled payments.'}`,
-            data: { intents: paymentIntents, summary: { totalSpent, totalAllowance } }
+            content:
+              'The subgraph is unreachable, so I have no live data to reason over. ' +
+              'I will not guess at balances - check SUBGRAPH_URL and try again.',
           };
         }
-        
-        if (lowerMessage.includes('pause') || lowerMessage.includes('stop')) {
-          const activeIntents = paymentIntents.filter(intent => intent.state === 0);
+        if (type === 'not_configured') {
           return {
-            content: `⏸️ **Pause Payment Intent**
-
-To pause a payment intent, I need to know which one. Your active intents:
-
-${activeIntents.map(intent => 
-  `• **${intent.agent}** - $${(Number(intent.spent) / 1e6).toFixed(2)}/$${(Number(intent.totalCap) / 1e6).toFixed(2)} spent`
-).join('\n')}
-
-Which intent would you like to pause? You can also visit the Intent Management section for full control.`
+            content:
+              'ANTHROPIC_API_KEY is not set on the server, so the analysis step ' +
+              'cannot run. The subgraph data is still available via /api/v1/intents.',
           };
         }
+        return { content: `Analysis failed: ${body?.error?.message ?? res.statusText}` };
       }
 
-      // Transaction History Queries
-      if (lowerMessage.includes('transaction') || lowerMessage.includes('history') || lowerMessage.includes('recent') || lowerMessage.includes('payment')) {
-        if (lowerMessage.includes('recent') || lowerMessage.includes('last') || lowerMessage.includes('latest')) {
-          const recentTx = transactions.slice(0, 5);
-          const totalAmount = recentTx.reduce((sum, tx) => sum + tx.amount, 0);
-          
-          return {
-            content: `📝 **Recent Transaction History**
+      const a = body.data;
+      const parts: string[] = [];
 
-**Last 5 Transactions:** (Total: $${totalAmount.toFixed(2)} USDC)
+      parts.push(`**${a.headline}**`);
+      parts.push(`Risk: ${String(a.riskLevel).toUpperCase()}`);
 
-${recentTx.map(tx => 
-  `• **${tx.type}** - $${tx.amount} ${tx.token}
-  ${tx.to ? `To: ${tx.to}` : ''}
-  ${formatDistanceToNow(new Date(tx.timestamp), { addSuffix: true })}
-  ${tx.status === 'confirmed' ? '✅' : tx.status === 'failed' ? '❌' : '⏳'}`
-).join('\n\n')}
-
-Want to see more details? Ask "show full transaction history" or "analyze my spending patterns".`,
-            data: { transactions: recentTx, totalAmount }
-          };
-        }
-        
-        if (lowerMessage.includes('analyze') || lowerMessage.includes('pattern') || lowerMessage.includes('spending')) {
-          const completedTx = transactions.filter(tx => tx.status === 'confirmed');
-          const totalSpent = completedTx.reduce((sum, tx) => sum + tx.amount, 0);
-          const avgTransaction = totalSpent / completedTx.length || 0;
-          
-          // Group by type
-          const byType = completedTx.reduce((acc, tx) => {
-            acc[tx.type] = (acc[tx.type] || 0) + tx.amount;
-            return acc;
-          }, {} as Record<string, number>);
-          
-          return {
-            content: `📈 **Spending Analysis**
-
-**Total Spent:** $${totalSpent.toFixed(2)} USDC
-**Transaction Count:** ${completedTx.length}
-**Average Transaction:** $${avgTransaction.toFixed(2)} USDC
-
-**Spending by Category:**
-${Object.entries(byType).map(([type, amount]) => 
-  `• **${type}**: $${amount.toFixed(2)} (${((amount/totalSpent)*100).toFixed(1)}%)`
-).join('\n')}
-
-**Insights:**
-${avgTransaction > 100 ? '💡 You tend to make larger transactions - consider creating payment intents with higher per-transaction limits.' : ''}
-${completedTx.length > 20 ? '🔄 High transaction frequency detected - payment intents could streamline your payments.' : ''}
-${totalSpent > 1000 ? '⚠️ Significant spending volume - ensure you have proper tracking and limits in place.' : ''}`,
-            data: { totalSpent, avgTransaction, byType, completedTx: completedTx.length }
-          };
+      if (a.findings?.length) {
+        parts.push('', '**What I found**');
+        for (const f of a.findings) {
+          parts.push(`- **${f.title}** - ${f.detail}`);
         }
       }
 
-      // Balance and Status Queries
-      if (lowerMessage.includes('balance') || lowerMessage.includes('wallet') || lowerMessage.includes('funds')) {
-        const response = await fetch('/api/agent/balance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userAddress: address })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const seiBalance = parseFloat(data.balances.SEI);
-          const usdcBalance = parseFloat(data.balances.USDC);
-          
-          return {
-            content: `💰 **Wallet Balance Overview**
-
-**Current Balances:**
-• SEI: ${data.balances.SEI} SEI ${seiBalance < 0.01 ? '⚠️ (Low - need for gas)' : '✅'}
-• USDC: $${data.balances.USDC} USDC ${usdcBalance < 10 ? '⚠️ (Consider funding)' : '✅'}
-
-**Payment Intent Capacity:**
-• Available for new intents: $${data.balances.USDC} USDC
-• Current intent spending: $${(paymentIntents.reduce((sum, intent) => sum + Number(intent.spent), 0) / 1e6).toFixed(2)} USDC
-
-**Recommendations:**
-${seiBalance < 0.01 ? '• Fund SEI for transaction gas fees' : ''}
-${usdcBalance < 100 ? '• Consider adding USDC for more payment flexibility' : ''}
-${usdcBalance > 1000 ? '• Excellent balance for creating multiple payment intents' : ''}`,
-            data: { balances: data.balances, recommendedActions: [] }
-          };
+      if (a.actions?.length) {
+        parts.push('', '**What to do**');
+        for (const act of a.actions) {
+          const recovers =
+            act.recoversUsdc > 0 ? ` (recovers ${act.recoversUsdc} USDC)` : '';
+          const target =
+            act.target && act.target !== 'n/a'
+              ? ` ${act.target.slice(0, 10)}...`
+              : '';
+          parts.push(
+            `- ${act.action}${target} - ${act.rationale} [${act.urgency}]${recovers}`,
+          );
         }
       }
 
-      // Help and Commands
-      if (lowerMessage.includes('help') || lowerMessage.includes('what can') || lowerMessage.includes('command')) {
-        return {
-          content: `🤖 **Personal Assistant Commands**
-
-**Payment Intent Management:**
-• "Show my payment intents"
-• "What's my spending allowance?"
-• "Pause [agent name] intent"
-
-**Transaction Analysis:**
-• "Show recent transactions"
-• "Analyze my spending patterns"
-• "What did I spend this month?"
-
-**Account Overview:**
-• "Check my balance"
-• "Wallet status"
-• "Account summary"
-
-**Insights & Analytics:**
-• "Show spending trends"
-• "Compare this month to last month"
-• "Most used merchants"
-
-**Quick Actions:**
-• "Refresh data" - Updates all information
-• "Create new intent" - Guides you through setup
-• "Export transactions" - Download your history
-
-I can understand natural language! Try asking questions like "How much have I spent on groceries?" or "Are any of my intents close to their limits?"`
-        };
+      if (a.dataGaps?.length) {
+        parts.push('', '**Gaps in the data**');
+        for (const g of a.dataGaps) parts.push(`- ${g}`);
       }
 
-      // Refresh Data
-      if (lowerMessage.includes('refresh') || lowerMessage.includes('update') || lowerMessage.includes('reload')) {
-        await Promise.all([refetchIntents(), refetchTransactions()]);
-        return {
-          content: `🔄 **Data Refreshed Successfully!**
-
-Updated information:
-• Payment Intents: ${paymentIntents.length} total
-• Transactions: ${transactions.length} total
-• Account status: Connected ✅
-
-All your latest blockchain data has been synchronized. Ask me anything about your updated information!`
-        };
+      const blk = body.source?.indexedBlock;
+      if (blk) {
+        parts.push('', `_Indexed to block ${blk} on Sei Atlantic via The Graph._`);
       }
 
-      // Default intelligent response
-      return {
-        content: `I understand you're asking about "${userMessage}". I'm your personal LedgerMind assistant specializing in:
-
-• 📊 Payment intent management and analysis
-• 💳 Transaction history and spending insights  
-• 💰 Balance monitoring and recommendations
-• 📈 Financial pattern analysis
-
-Try asking me:
-• "Show my recent payments"
-• "How much can I still spend?"
-• "What are my most expensive transactions?"
-• "Help me manage my intents"
-
-What specific information about your account would you like to know?`
-      };
-
+      return { content: parts.join('\n'), data: body };
     } catch (error) {
       console.error('Assistant response error:', error);
       return {
-        content: `I encountered an issue processing your request. This might be due to:
-
-• Network connectivity problems
-• Temporary data sync issues
-• Blockchain query timeout
-
-Please try again, or ask me something else. I'm here to help with your payment intents and transaction history!`
+        content:
+          'I could not reach the analysis endpoint. No cached answer is served, ' +
+          'because showing stale spending data would be worse than showing none.',
       };
     }
   };
