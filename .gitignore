@@ -157,3 +157,12 @@ req.txt
 idea.txrt
 DEPLOYMENT_GUIDE.md
 PINATA.md
+# Local operator notes - contains keys, never commit
+DEPLOY-NOTES.local.md
+
+# Demo recording apparatus and rendered video - local only
+docs/demo/
+docs/demo-script.md
+scripts/record_demo.py
+scripts/build-demo-video.mjs
+scripts/demo-create-intent.mjs

@@ -102,6 +102,16 @@ These are real errors from this session, not hypotheticals.
    `graph build` and `tsc` both passed happily. Fixed in v0.0.2 by treating
    `paymentCount == 0` as new-today explicitly.
 
+10. **Cited line numbers that pointed at the wrong code.** The write-up of the
+    old indexer's defects cited `indexer.ts:105`, `:163-170` and `:196-198`.
+    The real lines at the baseline tag are **76**, **161-167** and **205-207**.
+    The defects themselves were real and correctly described — the model had
+    read the file's contents, then wrote line numbers from memory of the
+    reading order rather than checking. Caught when the demo recording rendered
+    `sed -n '103,106p'` and displayed a function signature under a caption
+    claiming it showed the data-loss bug. Line references are now verified with
+    `grep -n` against the tagged file.
+
 ## Verification
 
 Nothing in the judged path is model output taken on trust:

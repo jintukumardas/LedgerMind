@@ -21,7 +21,7 @@ Baseline for all continuity claims: tag
 | 3 | Meaningful work: reasoning, decisions, automation, or NL interface | [`/api/v1/analyze`](apps/web/src/app/api/v1/analyze/route.ts) returns ranked `findings` and typed `actions` (`revoke_intent`, `withdraw_remainder`, `reduce_total_cap`, `restrict_merchants`, …) each with `recoversUsdc`, `urgency` and `evidence`. It does not print query results. | ✅ |
 | 4 | Open source with clear README | [`README.md`](README.md), [`packages/subgraph/README.md`](packages/subgraph/README.md). MIT licensed. | ✅ |
 | 5 | Public repository | <https://github.com/jintukumardas/LedgerMind> | ✅ |
-| 6 | 2–4 minute demo video | [`docs/demo-script.md`](docs/demo-script.md) §1 | ⬜ record |
+| 6 | 2–4 minute demo video | Recorded walkthrough of the live system — the subgraph answering, an intent created on testnet mid-recording and indexed without a redeploy, and the assistant's findings. Submitted via the ETHGlobal form. | ⬜ upload |
 | 7 | Select the **Continuity** pool | On the ETHGlobal submission form | ⬜ select |
 
 ### Verification commands
@@ -80,9 +80,24 @@ Record: [`docs/demo-intents.json`](docs/demo-intents.json).
 | 3 | Build a Recipe explaining service usage | [`docs/bazantic/recipe.md`](docs/bazantic/recipe.md) — when to reach for it, how to read units, the six mistakes that produce wrong answers, a worked example | ✅ drafted |
 | 4 | Identical prompt/model/settings in comparative tests | [`scripts/bazantic-ab.mjs`](scripts/bazantic-ab.mjs) — both arms read the same `TASKS`, `TOOLS`, `MODEL`, `MAX_TOKENS`, `MAX_TURNS` constants; only `ARMS.B_with_recipe` appends the Recipe | ✅ |
 | 5 | Recipe is the only material difference | `ARMS` in that script is literally `{A: BASE_SYSTEM, B: BASE_SYSTEM + RECIPE}`. `inputs.json` in each run directory records both prompts verbatim. | ✅ |
-| 6 | Logged inputs and outputs | `docs/bazantic-ab/run-<timestamp>/` — per-arm transcripts, `inputs.json`, `SUMMARY.md` | ⬜ run |
-| 7 | Video documenting outcome improvements | [`docs/demo-script.md`](docs/demo-script.md) §2 | ⬜ record |
+| 6 | Logged inputs and outputs | Two complete runs logged: `run-2026-09-13T08-48-29-792Z` (Haiku 4.5, primary) and `run-2026-09-13T08-35-05-067Z` (Opus 5). Each has per-arm transcripts, `inputs.json` with both system prompts verbatim, and `SUMMARY.md`. Findings written up in [`docs/bazantic-ab/README.md`](docs/bazantic-ab/README.md) | ✅ |
+| 7 | Video documenting outcome improvements | Recorded segment showing the controlled setup and the 60,920,000-vs-60.92-USDC result, read from the logged transcripts in [`docs/bazantic-ab/`](docs/bazantic-ab) | ⬜ upload |
 | 8 | Provide Bazantic account username | — | ⬜ supply |
+
+### Headline result
+
+On `claude-haiku-4-5`, asked "how much can my agents still spend?":
+
+| Arm | Answer |
+|---|---|
+| A — no Recipe | "Total Remaining Capacity: **60,920,000**" (raw base units) |
+| B — with Recipe | "**49.90 USDC**" most room, plus a correct per-intent USDC table |
+
+The true total is **60.92 USDC**. Arm A is off by a factor of a million to any
+human reader. Two further arm-A failures (unconverted units on
+`merchant-lookup`, hallucinated 2025 dates on `expiry-check`) are documented in
+[`docs/bazantic-ab/README.md`](docs/bazantic-ab/README.md), along with the three
+tasks where the Recipe made no measurable difference.
 
 ### Running the A/B test
 

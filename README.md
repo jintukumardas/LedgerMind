@@ -231,7 +231,6 @@ The server reads credentials from `.env`. See [`agent-setup.md`](agent-setup.md)
 
 - [`SUBMISSIONS.md`](SUBMISSIONS.md) — per-track requirement to artifact checklist
 - [`AI_USAGE.md`](AI_USAGE.md) — what AI tooling did, and where it was wrong
-- [`docs/demo-script.md`](docs/demo-script.md) — shot list per track
 - [`SETUP.md`](SETUP.md) — detailed setup
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 

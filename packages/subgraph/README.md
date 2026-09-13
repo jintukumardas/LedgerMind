@@ -16,11 +16,11 @@ tag.
 
 | # | Defect | Where | Consequence |
 |---|--------|-------|-------------|
-| 1 | Hard 1000-block lookback: `fromBlock = Math.max(lastProcessed + 1, currentBlock - 1000)` | `indexer.ts:105` | Sei produces ~400 ms blocks, so 1000 blocks is **~6.7 minutes**. Any downtime longer than that silently skips events forever — there is no backfill path. |
+| 1 | Hard 1000-block lookback: `fromBlock = Math.max(lastProcessed + 1, currentBlock - 1000)` | `indexer.ts:76` | Sei produces ~400 ms blocks, so 1000 blocks is **~6.7 minutes**. Any downtime longer than that silently skips events forever — there is no backfill path. |
 | 2 | No reorg handling | throughout | Only a block *number* is persisted, never a block hash. A reorged event stays in Postgres permanently and nothing ever reconciles it. |
-| 3 | No historical backfill | `indexer.ts:105` | On a fresh database the indexer starts at `currentBlock - 1000`, so every intent created before that moment is invisible. |
-| 4 | O(N) RPC fan-out per tick | `indexer.ts:163-170` | `processIntentEvents` loops over every known intent and issues 4 `queryFilter` calls each, every 10 s. At 100 intents that is 2,400 RPC calls/minute and it grows without bound. |
-| 5 | Per-event RPC amplification | `indexer.ts:196-198` | Each `Executed` event triggers `getBlock` + `getTransaction` + `waitForTransaction` + `limits()`. `waitForTransaction` on an already-mined historical transaction is a pointless blocking round trip. |
+| 3 | No historical backfill | `indexer.ts:76` | On a fresh database the indexer starts at `currentBlock - 1000`, so every intent created before that moment is invisible. |
+| 4 | O(N) RPC fan-out per tick | `indexer.ts:161-167` | `processIntentEvents` loops over every known intent and issues 4 `queryFilter` calls each, every 10 s. At 100 intents that is 2,400 RPC calls/minute and it grows without bound. |
+| 5 | Per-event RPC amplification | `indexer.ts:205-207` | Each `Executed` event triggers `getBlock` + `getTransaction` + `waitForTransaction` + `limits()`. `waitForTransaction` on an already-mined historical transaction is a pointless blocking round trip. |
 | 6 | Requires hosted Postgres + a long-running process | `database/client.ts` | Infra to run, pay for, and monitor. The subgraph has none. |
 | 7 | Not portable across chains | `config.ts` | Re-pointing at another network means re-running the same fragile process against a second RPC endpoint. |
 
