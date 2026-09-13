@@ -154,8 +154,8 @@ claude mcp add ledgermind \
 **Important**: Replace `/absolute/path/to/` with your actual project path. For example:
 ```bash
 claude mcp add ledgermind \
-  --env PRIVATE_KEY_PAYER=ceb7d3886c6fc074059d2d60390cbc716c622345af0b8e0cc43bd2a4cded7af9 \
-  --env PRIVATE_KEY_AGENT=ceb7d3886c6fc074059d2d60390cbc716c622345af0b8e0cc43bd2a4cded7af9 \
+  --env PRIVATE_KEY_PAYER=<YOUR_PAYER_PRIVATE_KEY> \
+  --env PRIVATE_KEY_AGENT=<YOUR_AGENT_PRIVATE_KEY> \
   --env FACTORY_ADDRESS=0xfF0e7F71a0e19E0BF037Bd90Ba30A2Ee409E53a7 \
   -- node /Users/username/ledgermind/packages/mcp/dist/index.js
 ```
