@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://ledger-mind.vercel.app",
+      "url": "https://ledger-mind-one.vercel.app",
       "description": "LedgerMind production"
     }
   ],
