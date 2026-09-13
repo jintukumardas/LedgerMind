@@ -1,0 +1,29 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "payer", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "intent", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "agent", "type": "address" },
+      { "indexed": false, "internalType": "bytes32", "name": "salt", "type": "bytes32" }
+    ],
+    "name": "IntentCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "oldImpl", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "newImpl", "type": "address" }
+    ],
+    "name": "ImplementationUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "totalIntents",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

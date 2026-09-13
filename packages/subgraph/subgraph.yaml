@@ -1,0 +1,79 @@
+specVersion: 1.0.0
+description: >-
+  LedgerMind - on-chain spending authority for AI agents. Indexes
+  PaymentIntentFactory and every PaymentIntent it deploys via CREATE2.
+repository: https://github.com/jintukumardas/LedgerMind
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum/contract
+    name: PaymentIntentFactory
+    network: sei-atlantic
+    source:
+      address: "0xfF0e7F71a0e19E0BF037Bd90Ba30A2Ee409E53a7"
+      abi: PaymentIntentFactory
+      # Factory was deployed at block 192211126 (2025-08-16). Sei produces
+      # ~400ms blocks, so a full backfill from there is ~78M blocks and does
+      # not finish inside the event window. We index from the start of our
+      # ETHOnline 2026 work instead; every intent in this subgraph is one
+      # created during the event. See packages/subgraph/README.md.
+      startBlock: 270500000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - PaymentIntent
+        - Payer
+        - Agent
+        - Protocol
+      abis:
+        - name: PaymentIntentFactory
+          file: ./abis/PaymentIntentFactory.json
+        - name: PaymentIntent
+          file: ./abis/PaymentIntent.json
+      eventHandlers:
+        - event: IntentCreated(indexed address,indexed address,indexed address,bytes32)
+          handler: handleIntentCreated
+
+templates:
+  # Each PaymentIntent is a full contract deployed with CREATE2 (not a
+  # minimal proxy), so it gets its own data source spawned at creation time.
+  - kind: ethereum/contract
+    name: PaymentIntent
+    network: sei-atlantic
+    source:
+      abi: PaymentIntent
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/intent.ts
+      entities:
+        - PaymentIntent
+        - Payment
+        - TopUp
+        - Withdrawal
+        - Revocation
+        - MerchantUpdate
+        - IntentDailySnapshot
+        - Merchant
+        - Agent
+        - Payer
+        - Protocol
+      abis:
+        - name: PaymentIntent
+          file: ./abis/PaymentIntent.json
+      eventHandlers:
+        - event: Executed(indexed address,indexed address,indexed address,uint256,bytes32,string)
+          handler: handleExecuted
+        - event: Revoked(indexed address,string)
+          handler: handleRevoked
+        - event: ToppedUp(uint256)
+          handler: handleToppedUp
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleWithdrawn
+        - event: MerchantUpdated(indexed address,bool)
+          handler: handleMerchantUpdated

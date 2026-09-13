@@ -1,0 +1,194 @@
+####################################################################
+# LedgerMind subgraph schema
+#
+# Replaces the PostgreSQL indexer at packages/mcp/src/indexer.ts.
+# Entities are shaped around the questions the spending assistant
+# actually asks (see packages/mcp/src/graph/queries.ts), not around
+# a 1:1 mirror of the old SQL tables.
+####################################################################
+
+"A payer: the human/owner who funds intents and sets the caps."
+type Payer @entity(immutable: false) {
+  id: Bytes!                          # payer address
+  intents: [PaymentIntent!]! @derivedFrom(field: "payer")
+  intentCount: Int!
+  "Sum of all Executed amounts across every intent this payer owns."
+  totalSpent: BigInt!
+  "Sum of every totalCap this payer has ever authorised."
+  totalAuthorized: BigInt!
+  firstSeenAt: BigInt!
+  lastActiveAt: BigInt!
+}
+
+"An agent: the key authorised to spend from an intent within its caps."
+type Agent @entity(immutable: false) {
+  id: Bytes!                          # agent address
+  intents: [PaymentIntent!]! @derivedFrom(field: "agent")
+  intentCount: Int!
+  totalSpent: BigInt!
+  paymentCount: Int!
+  firstSeenAt: BigInt!
+  lastActiveAt: BigInt!
+}
+
+"A merchant: any address that has received an Executed payment."
+type Merchant @entity(immutable: false) {
+  id: Bytes!                          # merchant address
+  payments: [Payment!]! @derivedFrom(field: "merchant")
+  totalReceived: BigInt!
+  paymentCount: Int!
+  firstPaidAt: BigInt!
+  lastPaidAt: BigInt!
+}
+
+enum IntentState {
+  Active
+  Revoked
+  Expired
+}
+
+"""
+A PaymentIntent contract. One per CREATE2 deployment from the factory.
+`spent` / `toppedUp` are maintained incrementally from events so the
+assistant never has to make an RPC call to answer a question.
+"""
+type PaymentIntent @entity(immutable: false) {
+  id: Bytes!                          # intent contract address
+  payer: Payer!
+  agent: Agent!
+  token: Bytes!
+  salt: Bytes!
+
+  totalCap: BigInt!
+  perTxCap: BigInt!
+  "Running total of Executed amounts. Mirrors Limits.spent on-chain."
+  spent: BigInt!
+  "totalCap - spent, floored at zero. Denormalised so it is filterable."
+  remainingCap: BigInt!
+  "Running total of ToppedUp amounts."
+  toppedUp: BigInt!
+  withdrawn: BigInt!
+
+  startTime: BigInt!
+  endTime: BigInt!
+  metadataURI: String!
+
+  "Revoked is authoritative from the event; Expired is derived at query time from endTime."
+  state: IntentState!
+  revokedAt: BigInt
+  revokedBy: Bytes
+  revokeReason: String
+
+  hasRestrictedMerchants: Boolean!
+  allowedMerchants: [Bytes!]!
+
+  createdAt: BigInt!
+  createdAtBlock: BigInt!
+  createdTxHash: Bytes!
+  lastActivityAt: BigInt!
+
+  paymentCount: Int!
+  payments: [Payment!]! @derivedFrom(field: "intent")
+  topUps: [TopUp!]! @derivedFrom(field: "intent")
+  withdrawals: [Withdrawal!]! @derivedFrom(field: "intent")
+  merchantUpdates: [MerchantUpdate!]! @derivedFrom(field: "intent")
+}
+
+"A single Executed event: the agent moved funds to a merchant."
+type Payment @entity(immutable: true) {
+  id: Bytes!                          # txHash-logIndex
+  intent: PaymentIntent!
+  agent: Agent!
+  merchant: Merchant!
+  payer: Payer!
+  token: Bytes!
+  amount: BigInt!
+
+  "keccak256 of the off-chain MCP context blob that justified this payment."
+  receiptHash: Bytes!
+  receiptURI: String!
+
+  "Intent.spent immediately after this payment - lets the assistant chart burn-down."
+  spentAfter: BigInt!
+  "How much of perTxCap this payment consumed, in basis points."
+  capUtilizationBps: BigInt!
+
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+  logIndex: BigInt!
+}
+
+type TopUp @entity(immutable: true) {
+  id: Bytes!
+  intent: PaymentIntent!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type Withdrawal @entity(immutable: true) {
+  id: Bytes!
+  intent: PaymentIntent!
+  to: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type Revocation @entity(immutable: true) {
+  id: Bytes!
+  intent: PaymentIntent!
+  revokedBy: Bytes!
+  reason: String!
+  "Unspent capital released back to the payer's control at revocation time."
+  unspentAtRevocation: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type MerchantUpdate @entity(immutable: true) {
+  id: Bytes!
+  intent: PaymentIntent!
+  merchant: Bytes!
+  allowed: Boolean!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+"""
+Daily rollup, keyed by intent + UTC day. The old Postgres indexer had no
+aggregation at all - the assistant pulled every row and summed in JS, which
+does not survive more than a few hundred payments. This is what the
+spending-analysis feature reasons over.
+"""
+type IntentDailySnapshot @entity(immutable: false) {
+  id: Bytes!                          # intentAddress-dayId
+  intent: PaymentIntent!
+  dayStartTimestamp: BigInt!
+  paymentCount: Int!
+  amountSpent: BigInt!
+  amountToppedUp: BigInt!
+  cumulativeSpent: BigInt!
+  uniqueMerchantCount: Int!
+  largestPayment: BigInt!
+}
+
+"Singleton protocol-wide counters, id = 'global'."
+type Protocol @entity(immutable: false) {
+  id: Bytes!
+  intentCount: Int!
+  activeIntentCount: Int!
+  revokedIntentCount: Int!
+  paymentCount: Int!
+  totalVolume: BigInt!
+  totalAuthorized: BigInt!
+  payerCount: Int!
+  agentCount: Int!
+  merchantCount: Int!
+  lastUpdatedAt: BigInt!
+}

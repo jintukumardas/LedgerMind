@@ -1,0 +1,20 @@
+{
+  "name": "@ledgermind/subgraph",
+  "version": "1.0.0",
+  "description": "Subgraph indexing LedgerMind PaymentIntentFactory + PaymentIntent on Sei Atlantic testnet",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "auth": "graph auth --studio",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ ledgermind",
+    "create:local": "graph create --node http://localhost:8020/ ledgermind",
+    "deploy:local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ledgermind",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.97.1",
+    "@graphprotocol/graph-ts": "0.38.1"
+  }
+}
