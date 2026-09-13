@@ -226,12 +226,13 @@ export default function Dashboard() {
                   <PaymentIntentsList />
                 </div>
 
-                {/* Personal Assistant - positioned at the bottom right (experimental) */}
-                {experimentalEnabled && (
-                  <div className="fixed bottom-4 right-4 z-50">
-                    <PersonalAssistant />
-                  </div>
-                )}
+                {/* Spending assistant. No longer gated behind the experimental
+                    flag: it reads live subgraph data and returns concrete
+                    actions, rather than the simulated responses it shipped
+                    with before ETHOnline 2026. */}
+                <div className="fixed bottom-4 right-4 z-50">
+                  <PersonalAssistant />
+                </div>
               </div>
             ) : (
               <Card>
