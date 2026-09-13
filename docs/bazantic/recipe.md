@@ -5,8 +5,9 @@ LedgerMind x402/MPP Gateway. It is versioned here so the A/B harness in
 `docs/bazantic-ab/` can load the exact same text that is registered on
 Bazantic — the Recipe must be the only variable between runs.
 
-**Gateway base URL:** `<YOUR_DEPLOYMENT>` (e.g. `https://ledgermind.vercel.app`)
-**OpenAPI document:** `<YOUR_DEPLOYMENT>/api/v1/openapi`
+**Gateway:** `https://ledgermind.bazgateway.com` (x402/MPP, dashboard: https://bazantic.com/gateways/kgyl7hicajerpe4plq5shcdbre)
+**Origin API:** `https://ledger-mind-one.vercel.app`
+**OpenAPI document:** `https://ledger-mind-one.vercel.app/api/v1/openapi`
 
 ---
 

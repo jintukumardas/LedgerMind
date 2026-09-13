@@ -92,7 +92,9 @@ rather than serving stale data — there is no mock fallback anywhere in the pat
 | `GET /api/v1/payments` | [route](apps/web/src/app/api/v1/payments/route.ts) |
 | `POST /api/v1/analyze` | [route](apps/web/src/app/api/v1/analyze/route.ts) |
 | OpenAPI 3.1 document | [`lib/openapi.ts`](apps/web/src/lib/openapi.ts), served at `/api/v1/openapi` |
-| Recipe draft | [`docs/bazantic/recipe.md`](docs/bazantic/recipe.md) |
+| Recipe | [`docs/bazantic/recipe.md`](docs/bazantic/recipe.md) |
+| Live x402/MPP Gateway | <https://ledgermind.bazgateway.com> |
+| Live API | <https://ledger-mind-one.vercel.app/api/v1/openapi> |
 | A/B harness | [`scripts/bazantic-ab.mjs`](scripts/bazantic-ab.mjs) → results in [`docs/bazantic-ab/`](docs/bazantic-ab) |
 
 Every response carries `source.indexedBlock` so a calling agent can judge
