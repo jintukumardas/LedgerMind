@@ -46,14 +46,18 @@ const seiMainnet = {
   },
 } as const;
 
+// WalletConnect refuses to initialise without a real project id and throws
+// "Project ID Not Configured" into the console on every page load, which
+// surfaces as an error toast in the UI. Only register it when one is actually
+// configured, so a clean clone works without a reown.com account.
+const wcProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+
 export const config = createConfig({
   chains: [seiTestnet, seiMainnet, mainnet, sepolia],
   connectors: [
     injected(),
     metaMask(),
-    walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '',
-    }),
+    ...(wcProjectId ? [walletConnect({ projectId: wcProjectId })] : []),
   ],
   transports: {
     [seiTestnet.id]: http(),
