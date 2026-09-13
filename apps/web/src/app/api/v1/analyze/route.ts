@@ -4,9 +4,12 @@ import { spendingContext } from "@/lib/subgraph";
 import { badRequest, fail, isAddress, ok } from "@/lib/api-response";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 60;
 
-const MODEL = "claude-opus-5";
+// Haiku 4.5 is the cheapest current model ($1/$5 per MTok) and is sufficient
+// here because buildFacts() does all the arithmetic before the model sees the
+// data - the model's job is judgement, not maths. Override with ANALYZE_MODEL.
+const MODEL = process.env.ANALYZE_MODEL || "claude-haiku-4-5";
 const USDC_DECIMALS = 6;
 
 function usdc(raw: string | number | bigint): number {
@@ -237,15 +240,22 @@ export async function POST(request: NextRequest) {
       body.question?.trim() ||
       "Review this payer's agent spending authority and tell me what to change.";
 
+    // Haiku 4.5 rejects output_config.effort and adaptive thinking; the 4.6+
+    // family takes both. Send only what the selected model accepts.
+    const isHaiku = MODEL.startsWith("claude-haiku");
+    const format = { type: "json_schema" as const, schema: SCHEMA };
+    const tuning = isHaiku
+      ? { output_config: { format } }
+      : {
+          thinking: { type: "adaptive" as const },
+          output_config: { effort: "high" as const, format },
+        };
+
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 16000,
+      max_tokens: 8000,
       system: SYSTEM,
-      thinking: { type: "adaptive" },
-      output_config: {
-        effort: "high",
-        format: { type: "json_schema", schema: SCHEMA },
-      },
+      ...tuning,
       messages: [
         {
           role: "user",
