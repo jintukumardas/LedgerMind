@@ -1,0 +1,174 @@
+{
+  "arm": "A_no_recipe",
+  "task": "budget-left",
+  "turns": 2,
+  "toolCalls": 1,
+  "usage": {
+    "input_tokens": 3357,
+    "output_tokens": 1467
+  },
+  "finalText": "I'll pull your active payment intents to see the remaining spend room.\n## Your 3 active intents\n\n| Intent | Label | Total cap | Spent | Remaining cap | Per-tx cap |\n|---|---|---|---|---|---|\n| `0xb530…7ca7` | Research paper + dataset subscriptions | 50.00 | 0.10 | **49.90** | 5.00 |\n| `0x5682…2f5b` | General ops agent – discretionary | 10.00 | 0.00 | **10.00** | 2.00 |\n| `0x4e08…bcf4` | Cloud infra autopay (GPU + storage) | 2.00 | 0.98 | **1.02** | 0.50 |\n\n**Total remaining authorization: 60.92 tokens** (token `0x4fcf…eaed`, amounts shown assuming 6 decimals).\n\n**Most room: the research/dataset intent** (`0xb530…7ca7`) — 49.90 left, 99.8% of its cap unused, and only 1 payment made so far. It's also merchant-restricted to `0x2222…2222`, so that headroom can only go to that one merchant.\n\n## One important caveat\n\nAuthorization ≠ available funds. Each intent also reports a `toppedUp` amount, which looks like escrow funding, and it's far below the caps:\n\n- `0xb530…`: topped up 0.40, spent 0.10 → ~0.30 actually fundable\n- `0x5682…`: topped up 0.30, spent 0.00 → ~0.30\n- `0x4e08…`: topped up 1.20, spent 0.98 → ~0.22\n\nIf that reading is right, your agents can only spend **~0.82 tokens right now** despite 60.92 in approved headroom — and the cloud infra agent is closest to running dry (0.22 left, under its own 0.50 per-tx cap, so its next full-size payment would fail). I can't fully confirm `toppedUp` semantics from this data alone; it may exclude an initial deposit. Worth verifying escrow balances directly before relying on the 60.92 figure.\n\nTwo other things worth noting: all three intents list the agent address as your own wallet, so they're distinguishable only by label, not by a distinct agent key. And all three expire around the same time (~unix 1791879000).",
+  "transcript": [
+    {
+      "turn": 1,
+      "stop_reason": "tool_use",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll pull your active payment intents to see the remaining spend room."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_014WWTivheiCAxpk5mrmBbuQ",
+          "name": "list_intents",
+          "input": {
+            "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+            "state": "Active"
+          },
+          "caller": {
+            "type": "direct"
+          }
+        }
+      ]
+    },
+    {
+      "turn": 1,
+      "tool_call": {
+        "name": "list_intents",
+        "input": {
+          "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+          "state": "Active"
+        },
+        "result": {
+          "_meta": {
+            "url": "http://localhost:3050/api/v1/intents?payer=0x0bD89b308B2497e79b48cF52163fDc98aC5663c2&state=Active",
+            "status": 200,
+            "ms": 795
+          },
+          "body": {
+            "ok": true,
+            "data": [
+              {
+                "id": "0x568222982112b7bd55bd90524e1434472f422f5b",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "10000000",
+                "perTxCap": "2000000",
+                "spent": "0",
+                "remainingCap": "10000000",
+                "toppedUp": "300000",
+                "withdrawn": "0",
+                "startTime": "1789286950",
+                "endTime": "1791879010",
+                "metadataURI": "General ops agent - discretionary spend",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": false,
+                "allowedMerchants": [],
+                "createdAt": "1789287011",
+                "createdAtBlock": "270805928",
+                "createdTxHash": "0x537778ce835a0961f08616e002c88d7156fa4a9248c23aa81d93e381111de1ec",
+                "lastActivityAt": "1789287024",
+                "paymentCount": 0
+              },
+              {
+                "id": "0xb530e9ca418560028db414e09aa36617a89e7ca7",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "50000000",
+                "perTxCap": "5000000",
+                "spent": "100000",
+                "remainingCap": "49900000",
+                "toppedUp": "400000",
+                "withdrawn": "0",
+                "startTime": "1789286932",
+                "endTime": "1791878992",
+                "metadataURI": "Research paper + dataset subscriptions",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x2222222222222222222222222222222222222222"
+                ],
+                "createdAt": "1789286994",
+                "createdAtBlock": "270805888",
+                "createdTxHash": "0x457d6a7fd41516d3d0106d2efbfcbb28a42cc245c05328d784827a737b1080d3",
+                "lastActivityAt": "1789287009",
+                "paymentCount": 1
+              },
+              {
+                "id": "0x4e0866d3c7ac1acbd4058cc9a0877193e640bcf4",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "2000000",
+                "perTxCap": "500000",
+                "spent": "980000",
+                "remainingCap": "1020000",
+                "toppedUp": "1200000",
+                "withdrawn": "0",
+                "startTime": "1789286905",
+                "endTime": "1791878965",
+                "metadataURI": "Cloud infra autopay - GPU + storage, weekly",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x1111111111111111111111111111111111111111"
+                ],
+                "createdAt": "1789286967",
+                "createdAtBlock": "270805825",
+                "createdTxHash": "0xb79c27a77214982dd7a4bad038f42f5bbfebcfeb6cd4dfcb133667ff18e9599b",
+                "lastActivityAt": "1789286988",
+                "paymentCount": 2
+              }
+            ],
+            "source": {
+              "indexer": "the-graph",
+              "network": "sei-atlantic",
+              "indexedBlock": 270809843,
+              "hasIndexingErrors": false,
+              "deployment": "QmbEacSyYCPYfbmPd7ZGeJU8DrJxYaBRGf5a4oiM1Kck93"
+            },
+            "count": 3
+          }
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "stop_reason": "end_turn",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "",
+          "signature": "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"
+        },
+        {
+          "type": "text",
+          "text": "## Your 3 active intents\n\n| Intent | Label | Total cap | Spent | Remaining cap | Per-tx cap |\n|---|---|---|---|---|---|\n| `0xb530…7ca7` | Research paper + dataset subscriptions | 50.00 | 0.10 | **49.90** | 5.00 |\n| `0x5682…2f5b` | General ops agent – discretionary | 10.00 | 0.00 | **10.00** | 2.00 |\n| `0x4e08…bcf4` | Cloud infra autopay (GPU + storage) | 2.00 | 0.98 | **1.02** | 0.50 |\n\n**Total remaining authorization: 60.92 tokens** (token `0x4fcf…eaed`, amounts shown assuming 6 decimals).\n\n**Most room: the research/dataset intent** (`0xb530…7ca7`) — 49.90 left, 99.8% of its cap unused, and only 1 payment made so far. It's also merchant-restricted to `0x2222…2222`, so that headroom can only go to that one merchant.\n\n## One important caveat\n\nAuthorization ≠ available funds. Each intent also reports a `toppedUp` amount, which looks like escrow funding, and it's far below the caps:\n\n- `0xb530…`: topped up 0.40, spent 0.10 → ~0.30 actually fundable\n- `0x5682…`: topped up 0.30, spent 0.00 → ~0.30\n- `0x4e08…`: topped up 1.20, spent 0.98 → ~0.22\n\nIf that reading is right, your agents can only spend **~0.82 tokens right now** despite 60.92 in approved headroom — and the cloud infra agent is closest to running dry (0.22 left, under its own 0.50 per-tx cap, so its next full-size payment would fail). I can't fully confirm `toppedUp` semantics from this data alone; it may exclude an initial deposit. Worth verifying escrow balances directly before relying on the 60.92 figure.\n\nTwo other things worth noting: all three intents list the agent address as your own wallet, so they're distinguishable only by label, not by a distinct agent key. And all three expire around the same time (~unix 1791879000)."
+        }
+      ]
+    }
+  ]
+}

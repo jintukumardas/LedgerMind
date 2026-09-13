@@ -1,0 +1,179 @@
+{
+  "arm": "A_no_recipe",
+  "task": "budget-left",
+  "turns": 2,
+  "toolCalls": 1,
+  "usage": {
+    "input_tokens": 3361,
+    "output_tokens": 1664
+  },
+  "finalText": "I'll pull your active payment intents.\nYou have **3 active intents**, all with the same agent address as your wallet (`0x0bD8…63c2`) — so they're distinguished by purpose, not by separate agent keys.\n\n**Remaining authorization (cap headroom):**\n\n| Intent | Purpose | Total cap | Spent | Cap remaining | Per-tx cap |\n|---|---|---|---|---|---|\n| `0xb530…7ca7` | Research papers + datasets | 50.00 | 0.10 | **49.90** | 5.00 |\n| `0x5682…2f5b` | General ops / discretionary | 10.00 | 0.00 | **10.00** | 2.00 |\n| `0x4e08…bcf4` | Cloud infra autopay (GPU+storage) | 2.00 | 0.98 | **1.02** | 0.50 |\n| | | | | **60.92 total** | |\n\n**Most room: the research/dataset intent (`0xb530…7ca7`) at 49.90 remaining — 82% of your total headroom.**\n\n⚠️ **But the caps are not what actually constrains you right now.** Each intent also has a funded balance (`toppedUp` minus `spent`), and those are far smaller:\n\n| Intent | Topped up | Spent | Funded balance |\n|---|---|---|---|\n| `0xb530…7ca7` | 0.40 | 0.10 | **0.30** |\n| `0x5682…2f5b` | 0.30 | 0.00 | **0.30** |\n| `0x4e08…bcf4` | 1.20 | 0.98 | **0.22** |\n| | | | **0.82 total** |\n\nSo if spending is gated by deposited funds, your agents can actually only spend **~0.82 total**, not 60.92 — and the three intents are nearly even (0.30 / 0.30 / 0.22). The cloud infra intent is in the tightest spot: it's burned 98% of its funding *and* 49% of its cap, and it's on a recurring weekly schedule.\n\nTwo caveats on the above:\n- I'm inferring that `toppedUp − spent − withdrawn` = spendable balance and that it gates payments independently of the cap. That's a read of the field names, not something the API confirmed — worth verifying before you rely on the 0.82 figure.\n- The API didn't return token decimals or a symbol. I've assumed 6 decimals (USDC-style) for token `0x4fcf…eaed`; if it's 18, divide all figures by 10¹².\n\nWant me to pull the payment history on the cloud infra intent to see its burn rate and estimate when it runs dry?",
+  "transcript": [
+    {
+      "turn": 1,
+      "stop_reason": "tool_use",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "",
+          "signature": "CAISkwIKjgEIERgCKkDmruzxcBoTXWZKLdNqodAdvwDE3e6nQXlhwzTexGtxc3ed8rMKExzwszBONvcGFhEnzcgZGW3Zyt7C0x+y/hpHMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiRkYjM2ZWExYi0wYmU2LTRiZDUtYTEyYi1hOGI1NTEyM2Y3MGSoAbG/mdUGEgwfWoABLV6Vml4UNSQaDDu6nDe2LtNK+96cLyIw3cJfgcFUdFXQqydUHT5JRUuwyOe3yefzGTgLTbCfUUgf56e8JSbbitp8jX1tWx42KjJL92MP+KgU9cjoBZOeA2CD6Cg12vyWMITobKxQMvZXMLvmwXyXOWf34vUkRtQeYVgGjRgB"
+        },
+        {
+          "type": "text",
+          "text": "I'll pull your active payment intents."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01Jzv9nect19Msz2ifbwf3Q7",
+          "name": "list_intents",
+          "input": {
+            "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+            "state": "Active"
+          },
+          "caller": {
+            "type": "direct"
+          }
+        }
+      ]
+    },
+    {
+      "turn": 1,
+      "tool_call": {
+        "name": "list_intents",
+        "input": {
+          "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+          "state": "Active"
+        },
+        "result": {
+          "_meta": {
+            "url": "http://localhost:3050/api/v1/intents?payer=0x0bD89b308B2497e79b48cF52163fDc98aC5663c2&state=Active",
+            "status": 200,
+            "ms": 810
+          },
+          "body": {
+            "ok": true,
+            "data": [
+              {
+                "id": "0x568222982112b7bd55bd90524e1434472f422f5b",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "10000000",
+                "perTxCap": "2000000",
+                "spent": "0",
+                "remainingCap": "10000000",
+                "toppedUp": "300000",
+                "withdrawn": "0",
+                "startTime": "1789286950",
+                "endTime": "1791879010",
+                "metadataURI": "General ops agent - discretionary spend",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": false,
+                "allowedMerchants": [],
+                "createdAt": "1789287011",
+                "createdAtBlock": "270805928",
+                "createdTxHash": "0x537778ce835a0961f08616e002c88d7156fa4a9248c23aa81d93e381111de1ec",
+                "lastActivityAt": "1789287024",
+                "paymentCount": 0
+              },
+              {
+                "id": "0xb530e9ca418560028db414e09aa36617a89e7ca7",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "50000000",
+                "perTxCap": "5000000",
+                "spent": "100000",
+                "remainingCap": "49900000",
+                "toppedUp": "400000",
+                "withdrawn": "0",
+                "startTime": "1789286932",
+                "endTime": "1791878992",
+                "metadataURI": "Research paper + dataset subscriptions",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x2222222222222222222222222222222222222222"
+                ],
+                "createdAt": "1789286994",
+                "createdAtBlock": "270805888",
+                "createdTxHash": "0x457d6a7fd41516d3d0106d2efbfcbb28a42cc245c05328d784827a737b1080d3",
+                "lastActivityAt": "1789287009",
+                "paymentCount": 1
+              },
+              {
+                "id": "0x4e0866d3c7ac1acbd4058cc9a0877193e640bcf4",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "2000000",
+                "perTxCap": "500000",
+                "spent": "980000",
+                "remainingCap": "1020000",
+                "toppedUp": "1200000",
+                "withdrawn": "0",
+                "startTime": "1789286905",
+                "endTime": "1791878965",
+                "metadataURI": "Cloud infra autopay - GPU + storage, weekly",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x1111111111111111111111111111111111111111"
+                ],
+                "createdAt": "1789286967",
+                "createdAtBlock": "270805825",
+                "createdTxHash": "0xb79c27a77214982dd7a4bad038f42f5bbfebcfeb6cd4dfcb133667ff18e9599b",
+                "lastActivityAt": "1789286988",
+                "paymentCount": 2
+              }
+            ],
+            "source": {
+              "indexer": "the-graph",
+              "network": "sei-atlantic",
+              "indexedBlock": 270808939,
+              "hasIndexingErrors": false,
+              "deployment": "QmbEacSyYCPYfbmPd7ZGeJU8DrJxYaBRGf5a4oiM1Kck93"
+            },
+            "count": 3
+          }
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "stop_reason": "end_turn",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "",
+          "signature": "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"
+        },
+        {
+          "type": "text",
+          "text": "You have **3 active intents**, all with the same agent address as your wallet (`0x0bD8…63c2`) — so they're distinguished by purpose, not by separate agent keys.\n\n**Remaining authorization (cap headroom):**\n\n| Intent | Purpose | Total cap | Spent | Cap remaining | Per-tx cap |\n|---|---|---|---|---|---|\n| `0xb530…7ca7` | Research papers + datasets | 50.00 | 0.10 | **49.90** | 5.00 |\n| `0x5682…2f5b` | General ops / discretionary | 10.00 | 0.00 | **10.00** | 2.00 |\n| `0x4e08…bcf4` | Cloud infra autopay (GPU+storage) | 2.00 | 0.98 | **1.02** | 0.50 |\n| | | | | **60.92 total** | |\n\n**Most room: the research/dataset intent (`0xb530…7ca7`) at 49.90 remaining — 82% of your total headroom.**\n\n⚠️ **But the caps are not what actually constrains you right now.** Each intent also has a funded balance (`toppedUp` minus `spent`), and those are far smaller:\n\n| Intent | Topped up | Spent | Funded balance |\n|---|---|---|---|\n| `0xb530…7ca7` | 0.40 | 0.10 | **0.30** |\n| `0x5682…2f5b` | 0.30 | 0.00 | **0.30** |\n| `0x4e08…bcf4` | 1.20 | 0.98 | **0.22** |\n| | | | **0.82 total** |\n\nSo if spending is gated by deposited funds, your agents can actually only spend **~0.82 total**, not 60.92 — and the three intents are nearly even (0.30 / 0.30 / 0.22). The cloud infra intent is in the tightest spot: it's burned 98% of its funding *and* 49% of its cap, and it's on a recurring weekly schedule.\n\nTwo caveats on the above:\n- I'm inferring that `toppedUp − spent − withdrawn` = spendable balance and that it gates payments independently of the cap. That's a read of the field names, not something the API confirmed — worth verifying before you rely on the 0.82 figure.\n- The API didn't return token decimals or a symbol. I've assumed 6 decimals (USDC-style) for token `0x4fcf…eaed`; if it's 18, divide all figures by 10¹².\n\nWant me to pull the payment history on the cloud infra intent to see its burn rate and estimate when it runs dry?"
+        }
+      ]
+    }
+  ]
+}

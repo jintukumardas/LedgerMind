@@ -31,7 +31,7 @@ const ROOT = path.resolve(HERE, "..");
 
 const API = (process.env.LEDGERMIND_API || "http://localhost:3000").replace(/\/$/, "");
 const PAYER = process.env.PAYER;
-const MODEL = process.env.MODEL || "claude-opus-5";
+const MODEL = process.env.MODEL || "claude-haiku-4-5";
 const MAX_TOKENS = 8000;
 const MAX_TURNS = 12;
 

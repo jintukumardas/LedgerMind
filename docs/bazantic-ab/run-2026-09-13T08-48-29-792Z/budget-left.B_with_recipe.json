@@ -1,0 +1,169 @@
+{
+  "arm": "B_with_recipe",
+  "task": "budget-left",
+  "turns": 2,
+  "toolCalls": 1,
+  "usage": {
+    "input_tokens": 6247,
+    "output_tokens": 443
+  },
+  "finalText": "I'll check your active intents and analyze how much spending capacity remains for your agents.\nBased on your active intents, here's the remaining spending capacity for your agents:\n\n| Intent | Purpose | Remaining Cap | Per-Tx Limit | Funded |\n|--------|---------|----------------|--------------|--------|\n| **0x568222...** | General ops agent | **10.00 USDC** | 2.00 USDC | 0.30 USDC ⚠️ |\n| **0xb530e9...** | Research subscriptions | **49.90 USDC** | 5.00 USDC | 0.40 USDC ⚠️ |\n| **0x4e0866...** | Cloud infra autopay | **1.02 USDC** | 0.50 USDC | 1.20 USDC |\n\n**Most room: 0xb530e9ca** with **49.90 USDC** remaining.\n\n**⚠️ Critical issue:** Your first two intents have **remainingCap far exceeding toppedUp balance**. The agents technically have authority to spend 10 and 49.9 USDC respectively, but the contracts only hold 0.30 and 0.40 USDC. Once that runs out, payments will fail despite remaining cap. You'll need to top up these intents to let your agents actually spend their authorized amounts.",
+  "transcript": [
+    {
+      "turn": 1,
+      "stop_reason": "tool_use",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll check your active intents and analyze how much spending capacity remains for your agents."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01ALMMVPiWPDmB9YYZ6tsAAr",
+          "name": "list_intents",
+          "input": {
+            "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+            "state": "Active"
+          },
+          "caller": {
+            "type": "direct"
+          }
+        }
+      ]
+    },
+    {
+      "turn": 1,
+      "tool_call": {
+        "name": "list_intents",
+        "input": {
+          "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+          "state": "Active"
+        },
+        "result": {
+          "_meta": {
+            "url": "http://localhost:3050/api/v1/intents?payer=0x0bD89b308B2497e79b48cF52163fDc98aC5663c2&state=Active",
+            "status": 200,
+            "ms": 761
+          },
+          "body": {
+            "ok": true,
+            "data": [
+              {
+                "id": "0x568222982112b7bd55bd90524e1434472f422f5b",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "10000000",
+                "perTxCap": "2000000",
+                "spent": "0",
+                "remainingCap": "10000000",
+                "toppedUp": "300000",
+                "withdrawn": "0",
+                "startTime": "1789286950",
+                "endTime": "1791879010",
+                "metadataURI": "General ops agent - discretionary spend",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": false,
+                "allowedMerchants": [],
+                "createdAt": "1789287011",
+                "createdAtBlock": "270805928",
+                "createdTxHash": "0x537778ce835a0961f08616e002c88d7156fa4a9248c23aa81d93e381111de1ec",
+                "lastActivityAt": "1789287024",
+                "paymentCount": 0
+              },
+              {
+                "id": "0xb530e9ca418560028db414e09aa36617a89e7ca7",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "50000000",
+                "perTxCap": "5000000",
+                "spent": "100000",
+                "remainingCap": "49900000",
+                "toppedUp": "400000",
+                "withdrawn": "0",
+                "startTime": "1789286932",
+                "endTime": "1791878992",
+                "metadataURI": "Research paper + dataset subscriptions",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x2222222222222222222222222222222222222222"
+                ],
+                "createdAt": "1789286994",
+                "createdAtBlock": "270805888",
+                "createdTxHash": "0x457d6a7fd41516d3d0106d2efbfcbb28a42cc245c05328d784827a737b1080d3",
+                "lastActivityAt": "1789287009",
+                "paymentCount": 1
+              },
+              {
+                "id": "0x4e0866d3c7ac1acbd4058cc9a0877193e640bcf4",
+                "payer": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "agent": {
+                  "id": "0x0bd89b308b2497e79b48cf52163fdc98ac5663c2"
+                },
+                "token": "0x4fcf1784b31630811181f670aea7a7bef803eaed",
+                "totalCap": "2000000",
+                "perTxCap": "500000",
+                "spent": "980000",
+                "remainingCap": "1020000",
+                "toppedUp": "1200000",
+                "withdrawn": "0",
+                "startTime": "1789286905",
+                "endTime": "1791878965",
+                "metadataURI": "Cloud infra autopay - GPU + storage, weekly",
+                "state": "Active",
+                "revokedAt": null,
+                "revokedBy": null,
+                "revokeReason": null,
+                "hasRestrictedMerchants": true,
+                "allowedMerchants": [
+                  "0x1111111111111111111111111111111111111111"
+                ],
+                "createdAt": "1789286967",
+                "createdAtBlock": "270805825",
+                "createdTxHash": "0xb79c27a77214982dd7a4bad038f42f5bbfebcfeb6cd4dfcb133667ff18e9599b",
+                "lastActivityAt": "1789286988",
+                "paymentCount": 2
+              }
+            ],
+            "source": {
+              "indexer": "the-graph",
+              "network": "sei-atlantic",
+              "indexedBlock": 270811319,
+              "hasIndexingErrors": false,
+              "deployment": "QmbEacSyYCPYfbmPd7ZGeJU8DrJxYaBRGf5a4oiM1Kck93"
+            },
+            "count": 3
+          }
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "stop_reason": "end_turn",
+      "content": [
+        {
+          "type": "text",
+          "text": "Based on your active intents, here's the remaining spending capacity for your agents:\n\n| Intent | Purpose | Remaining Cap | Per-Tx Limit | Funded |\n|--------|---------|----------------|--------------|--------|\n| **0x568222...** | General ops agent | **10.00 USDC** | 2.00 USDC | 0.30 USDC ⚠️ |\n| **0xb530e9...** | Research subscriptions | **49.90 USDC** | 5.00 USDC | 0.40 USDC ⚠️ |\n| **0x4e0866...** | Cloud infra autopay | **1.02 USDC** | 0.50 USDC | 1.20 USDC |\n\n**Most room: 0xb530e9ca** with **49.90 USDC** remaining.\n\n**⚠️ Critical issue:** Your first two intents have **remainingCap far exceeding toppedUp balance**. The agents technically have authority to spend 10 and 49.9 USDC respectively, but the contracts only hold 0.30 and 0.40 USDC. Once that runs out, payments will fail despite remaining cap. You'll need to top up these intents to let your agents actually spend their authorized amounts."
+        }
+      ]
+    }
+  ]
+}

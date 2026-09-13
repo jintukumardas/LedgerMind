@@ -1,0 +1,119 @@
+{
+  "model": "claude-opus-5",
+  "maxTokens": 8000,
+  "maxTurns": 12,
+  "api": "http://localhost:3050",
+  "payer": "0x0bD89b308B2497e79b48cF52163fDc98aC5663c2",
+  "tasks": [
+    {
+      "id": "idle-capital",
+      "prompt": "I've been letting agents spend on my behalf for a while. Is any of my money just sitting there doing nothing? If so, how much, and what do I do about it?"
+    },
+    {
+      "id": "risk-review",
+      "prompt": "Is my agent spending money sensibly? Anything I should be worried about?"
+    },
+    {
+      "id": "budget-left",
+      "prompt": "How much can my agents still spend right now, and which one has the most room?"
+    }
+  ],
+  "tools": [
+    {
+      "name": "list_intents",
+      "description": "List LedgerMind payment intents. Returns JSON.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "payer": {
+            "type": "string",
+            "description": "0x address"
+          },
+          "agent": {
+            "type": "string",
+            "description": "0x address"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "Active",
+              "Revoked",
+              "Expired"
+            ]
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "get_intent",
+      "description": "Get one LedgerMind payment intent and its payments. Returns JSON.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "0x address"
+          }
+        },
+        "required": [
+          "address"
+        ]
+      }
+    },
+    {
+      "name": "list_payments",
+      "description": "List executed LedgerMind payments. Returns JSON.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string"
+          },
+          "agent": {
+            "type": "string"
+          },
+          "merchant": {
+            "type": "string"
+          },
+          "since": {
+            "type": "integer",
+            "description": "unix seconds"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "name": "analyze_spending",
+      "description": "Run LedgerMind's analysis over a payer's intents. Returns JSON.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "payer": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "windowDays": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "payer"
+        ]
+      }
+    }
+  ],
+  "systemPrompts": {
+    "A_no_recipe": "You are a helpful assistant with access to the LedgerMind API. The user's wallet address is 0x0bD89b308B2497e79b48cF52163fDc98aC5663c2. Answer their question using the tools available. Be concrete and concise.",
+    "B_with_recipe": "You are a helpful assistant with access to the LedgerMind API. The user's wallet address is 0x0bD89b308B2497e79b48cF52163fDc98aC5663c2. Answer their question using the tools available. Be concrete and concise.\n\n---\n\n# LedgerMind Recipe (draft for bazantic.com)\n\nThis is the Recipe text to paste into the Bazantic Recipe editor for the\nLedgerMind x402/MPP Gateway. It is versioned here so the A/B harness in\n`docs/bazantic-ab/` can load the exact same text that is registered on\nBazantic — the Recipe must be the only variable between runs.\n\n**Gateway base URL:** `<YOUR_DEPLOYMENT>` (e.g. `https://ledgermind.vercel.app`)\n**OpenAPI document:** `<YOUR_DEPLOYMENT>/api/v1/openapi`\n\n---\n\n## Recipe: Delegating spend to an AI agent with LedgerMind\n\n### What this service is\n\nLedgerMind turns \"let an agent spend money for me\" into a smart contract with\nenforced limits. A **payment intent** is a contract that holds funds and\nenforces four things on every payment:\n\n- a **total cap** — lifetime ceiling for the whole intent\n- a **per-transaction cap** — ceiling on any single payment\n- a **time window** — start and end timestamps\n- an optional **merchant allowlist** — addresses the agent may pay\n\nThe agent holds a key that can call `execute` within those limits. It never\nholds the payer's funds and cannot exceed the caps. The payer can revoke at any\ntime. Every payment emits a `receiptHash` committing to the off-chain context\nthat justified it, so spending is auditable afterwards.\n\n### When to reach for this service\n\nReach for LedgerMind when the user's question is about **money an agent is\nallowed to spend** — not about wallet balances, token prices, or transfers.\n\nGood triggers:\n\n- \"How much can my shopping agent still spend this month?\"\n- \"Did any of my agents overspend?\" / \"What is my agent spending on?\"\n- \"I want to give an agent a budget for X, capped at Y.\"\n- \"Something looks wrong — can I cut off this agent?\"\n- \"How much of my money is sitting idle in dead intents?\"\n\nNot this service:\n\n- Sending a one-off payment yourself (use a wallet).\n- Token prices, swaps, bridging, yield.\n- Anything on a chain other than Sei Atlantic testnet.\n\n### How to use it\n\nFour endpoints. Prefer the analysis endpoint when the user wants a *decision*;\nuse the list endpoints when they want *data*.\n\n| Goal | Call |\n|------|------|\n| What has this person authorised? | `GET /api/v1/intents?payer=0x...` |\n| One authority in detail, with history | `GET /api/v1/intents/{address}` |\n| What has actually been spent? | `GET /api/v1/payments?intent=0x...` or `?agent=0x...` |\n| What should they *do* about it? | `POST /api/v1/analyze` with `{\"payer\":\"0x...\"}` |\n\n**Start with `POST /api/v1/analyze`** for any open-ended question about risk,\noverspending, idle capital, or \"what should I change\". It returns ranked\nfindings and concrete actions (`revoke_intent`, `withdraw_remainder`,\n`reduce_total_cap`, `restrict_merchants`, …), each with the USDC it recovers.\nIt also returns the `facts` it reasoned from, so you can quote specific numbers\nwithout a second call.\n\nDo not call the list endpoints first and analyse them yourself. The analyze\nendpoint already has the daily rollups and cap-utilisation figures;\nre-deriving them from raw lists wastes calls and loses the per-transaction\ncap-utilisation signal.\n\n### Reading the data correctly\n\nThese are the mistakes that produce wrong answers:\n\n- **Amounts are base units as strings.** USDC has 6 decimals: `\"5000000\"` is\n  **5 USDC**, not 5,000,000. Divide by 1e6 before showing a number to a user.\n- **`state` is not the whole story.** An intent with `state: \"Active\"` whose\n  `endTime` is in the past is effectively **expired**. Compare `endTime`\n  against the current time yourself.\n- **`spent` vs `toppedUp` are different questions.** `spent` is what the agent\n  has paid out; `toppedUp` is what the payer put in. `toppedUp - spent` on a\n  Revoked or Expired intent is **idle capital** that can be recovered with\n  `withdrawRemainder`.\n- **`remainingCap` is authority, not money.** It is `totalCap - spent`. The\n  intent may not actually hold that much — check `toppedUp`.\n- **`hasRestrictedMerchants: false` means the agent may pay _any_ address.**\n  On a high-cap intent this is the single most important risk signal.\n- **`capUtilizationBps` is share of per-tx cap in basis points.** `9800` means\n  a payment used 98% of the per-transaction ceiling — repeated values near\n  10000 mean the agent is being throttled.\n- **Check `source.indexedBlock`.** Every response reports the indexed block\n  height. If it lags far behind, say so rather than presenting stale data as\n  current.\n\n### Answering well\n\n- Lead with the decision, then the number that justifies it.\n- Name the specific intent address for any claim about one intent.\n- Convert base units to USDC in anything shown to a user.\n- If `dataGaps` is non-empty, surface it — do not paper over thin data.\n- Never invent a balance, a price, or a merchant name. The API returns\n  addresses, not names; say \"merchant 0x1234…\" rather than guessing an identity.\n\n### Worked example\n\nUser: *\"Is my agent spending money sensibly?\"*\n\n1. `POST /api/v1/analyze` with `{\"payer\": \"<their address>\"}`.\n2. Read `headline` and `riskLevel`.\n3. Report the top 1–2 `actions` with `rationale` and `recoversUsdc`, naming the\n   target intent.\n4. Quote supporting figures from `facts` — converted to USDC.\n\nDo **not** answer by listing every intent and its raw cap values. The user asked\nfor a judgement.\n"
+  },
+  "recipeSha": 5274,
+  "note": "Arms A and B share model, settings, tools, task prompts and API. The only difference is the Recipe appended to arm B's system prompt."
+}
