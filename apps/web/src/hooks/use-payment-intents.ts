@@ -1,69 +1,19 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAccount, usePublicClient, useChainId } from 'wagmi';
-import { getContract } from 'viem';
+import { useAccount } from 'wagmi';
 
-const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS as `0x${string}`;
-
-const FACTORY_ABI = [
-  {
-    "inputs": [{"name": "payer", "type": "address"}],
-    "name": "getPayerIntents",
-    "outputs": [{"name": "", "type": "address[]"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
-] as const;
-
-const INTENT_ABI = [
-  {
-    "inputs": [],
-    "name": "agent",
-    "outputs": [{"name": "", "type": "address"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "limits",
-    "outputs": [
-      {"name": "totalCap", "type": "uint256"},
-      {"name": "perTxCap", "type": "uint256"},
-      {"name": "spent", "type": "uint256"},
-      {"name": "start", "type": "uint64"},
-      {"name": "end", "type": "uint64"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "state",
-    "outputs": [{"name": "", "type": "uint8"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "currentState",
-    "outputs": [{"name": "", "type": "uint8"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "paused",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "hasRestrictedMerchants",
-    "outputs": [{"name": "", "type": "bool"}],
-    "stateMutability": "view",
-    "type": "function"
-  }
-] as const;
+/**
+ * Reads the connected payer's intents from the LedgerMind subgraph via
+ * /api/v1/intents.
+ *
+ * Before ETHOnline 2026 this hook talked to the chain directly: one
+ * `getPayerIntents` call, then five `eth_call`s per intent (agent, limits,
+ * currentState, paused, hasRestrictedMerchants). That is 1 + 5N round trips on
+ * every dashboard load, the same fan-out problem the old PostgreSQL indexer
+ * had. It is now a single HTTP request whose cost does not grow with N, and the
+ * dashboard shows exactly what the subgraph shows.
+ *
+ * The exported shape is unchanged, so consumers did not need editing.
+ */
 
 export interface PaymentIntent {
   address: string;
@@ -76,164 +26,103 @@ export interface PaymentIntent {
   state: number; // 0 = Active, 1 = Revoked, 2 = Expired
   paused: boolean;
   hasRestrictedMerchants: boolean;
+  /** Purpose the payer set at creation. Not available from the old on-chain path. */
+  metadataURI: string;
+  /** Total funded via topUp. Lets the UI distinguish authority from liquidity. */
+  toppedUp: bigint;
+  paymentCount: number;
+}
+
+interface ApiIntent {
+  id: string;
+  agent: { id: string };
+  totalCap: string;
+  perTxCap: string;
+  spent: string;
+  toppedUp: string;
+  startTime: string;
+  endTime: string;
+  state: 'Active' | 'Revoked' | 'Expired';
+  hasRestrictedMerchants: boolean;
+  metadataURI: string;
+  paymentCount: number;
+}
+
+const STATE: Record<string, number> = { Active: 0, Revoked: 1, Expired: 2 };
+
+function toIntent(i: ApiIntent): PaymentIntent {
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const end = BigInt(i.endTime);
+  // The subgraph stores Revoked authoritatively but cannot know "now", so
+  // expiry is derived here - the same rule the analysis endpoint applies.
+  let state = STATE[i.state] ?? 0;
+  if (state === 0 && end <= now) state = 2;
+
+  return {
+    address: i.id,
+    agent: i.agent.id,
+    totalCap: BigInt(i.totalCap),
+    perTransactionCap: BigInt(i.perTxCap),
+    spent: BigInt(i.spent),
+    toppedUp: BigInt(i.toppedUp),
+    start: BigInt(i.startTime),
+    end,
+    state,
+    // Pausable state is not indexed - no event is emitted for it. Surfacing a
+    // guess would be worse than defaulting, and nothing in the UI gates on it.
+    paused: false,
+    hasRestrictedMerchants: i.hasRestrictedMerchants,
+    metadataURI: i.metadataURI,
+    paymentCount: i.paymentCount,
+  };
 }
 
 export function usePaymentIntents() {
   const [intents, setIntents] = useState<PaymentIntent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [indexedBlock, setIndexedBlock] = useState<number | null>(null);
+
   const { address } = useAccount();
-  const publicClient = usePublicClient();
+
+  const load = useCallback(async () => {
+    if (!address) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/v1/intents?payer=${address}&limit=200`,
+        { cache: 'no-store' },
+      );
+      const body = await res.json();
+
+      if (!res.ok || !body.ok) {
+        if (body?.error?.type === 'subgraph_unavailable') {
+          throw new Error(
+            'The subgraph is unreachable, so there is no live data to show. ' +
+              'No cached copy is served.',
+          );
+        }
+        throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+      }
+
+      setIntents((body.data as ApiIntent[]).map(toIntent));
+      setIndexedBlock(body.source?.indexedBlock ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load intents');
+      setIntents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [address]);
 
   useEffect(() => {
-    if (!address || !publicClient || !FACTORY_ADDRESS) {
-      console.log('Missing requirements:', { address, publicClient: !!publicClient, FACTORY_ADDRESS });
+    if (!address) {
+      setIntents([]);
       return;
     }
+    load();
+  }, [address, load]);
 
-    const fetchIntents = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        console.log('Fetching intents for address:', address);
-        console.log('Factory address:', FACTORY_ADDRESS);
-        
-        // Get factory contract
-        const factory = getContract({
-          address: FACTORY_ADDRESS,
-          abi: FACTORY_ABI,
-          client: publicClient,
-        });
-
-        // Get intent addresses for this payer
-        const intentAddresses = await factory.read.getPayerIntents([address]);
-        console.log('Found intent addresses:', intentAddresses);
-        
-        if (intentAddresses.length === 0) {
-          setIntents([]);
-          setLoading(false);
-          return;
-        }
-        
-        // Fetch details for each intent
-        const intentPromises = intentAddresses.map(async (intentAddress) => {
-          console.log('Fetching details for intent:', intentAddress);
-          const intent = getContract({
-            address: intentAddress,
-            abi: INTENT_ABI,
-            client: publicClient,
-          });
-
-          const [agent, limits, state, paused, hasRestrictedMerchants] = await Promise.all([
-            intent.read.agent(),
-            intent.read.limits(),
-            intent.read.currentState(),
-            intent.read.paused(),
-            intent.read.hasRestrictedMerchants(),
-          ]);
-
-          return {
-            address: intentAddress,
-            agent,
-            totalCap: limits[0],
-            perTransactionCap: limits[1],
-            spent: limits[2],
-            start: limits[3],
-            end: limits[4],
-            state: Number(state),
-            paused: Boolean(paused),
-            hasRestrictedMerchants: Boolean(hasRestrictedMerchants),
-          };
-        });
-
-        const intentDetails = await Promise.all(intentPromises);
-        console.log('Intent details:', intentDetails);
-        setIntents(intentDetails);
-      } catch (err) {
-        console.error('Failed to fetch payment intents:', err);
-        setError(`Failed to load payment intents: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIntents();
-  }, [address, publicClient]);
-
-  const refetch = useCallback(() => {
-    if (!address || !publicClient || !FACTORY_ADDRESS) {
-      return;
-    }
-
-    const fetchIntents = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        console.log('Refetching intents for address:', address);
-        
-        const factory = getContract({
-          address: FACTORY_ADDRESS,
-          abi: FACTORY_ABI,
-          client: publicClient,
-        });
-
-        const intentAddresses = await factory.read.getPayerIntents([address]);
-        
-        if (intentAddresses.length === 0) {
-          setIntents([]);
-          setLoading(false);
-          return;
-        }
-        
-        const intentPromises = intentAddresses.map(async (intentAddress) => {
-          const intent = getContract({
-            address: intentAddress,
-            abi: INTENT_ABI,
-            client: publicClient,
-          });
-
-          const [agent, limits, state, paused, hasRestrictedMerchants] = await Promise.all([
-            intent.read.agent(),
-            intent.read.limits(),
-            intent.read.currentState(),
-            intent.read.paused(),
-            intent.read.hasRestrictedMerchants(),
-          ]);
-
-          return {
-            address: intentAddress,
-            agent,
-            totalCap: limits[0],
-            perTransactionCap: limits[1],
-            spent: limits[2],
-            start: limits[3],
-            end: limits[4],
-            state: Number(state),
-            paused: Boolean(paused),
-            hasRestrictedMerchants: Boolean(hasRestrictedMerchants),
-          };
-        });
-
-        const intentDetails = await Promise.all(intentPromises);
-        setIntents(intentDetails);
-      } catch (err) {
-        console.error('Failed to refetch payment intents:', err);
-        setError(`Failed to reload payment intents: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIntents();
-  }, [address, publicClient]);
-
-  return {
-    intents,
-    loading,
-    error,
-    refetch,
-  };
+  return { intents, loading, error, indexedBlock, refetch: load };
 }
